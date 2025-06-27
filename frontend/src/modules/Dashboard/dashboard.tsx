@@ -64,7 +64,7 @@ interface UpcomingBirthday {
   upcomingBirthday: string;
 }
 
-import bannerImage from "@/images/banner.jpg";
+// import bannerImage from "@/images/banner.jpg";
 import { Bar, BarChart, ResponsiveContainer, XAxis, YAxis } from "recharts";
 import {
   Bell,
@@ -447,43 +447,9 @@ export default function ResponsiveLabDashboard() {
         className="flex-1 overflow-y-auto p-4 md:p-8"
         style={scrollbarHideStyle}
       >
-        <div className="flex justify-between items-center mb-6">
-          <img src={bannerImage} alt="Welcome Banner 2024" className="w-full rounded-lg shadow-md" />
-         
-        </div>
-
-        {User?.role !== "admin" && (
-        <div className="flex justify-center gap-3 items-center mb-6">
- 
-          <ShimmerButton className="shadow-2xl" onClick={() => navigate('/references/create')}> 
-         <span className="whitespace-pre-wrap text-center text-sm font-medium leading-none tracking-tight text-white dark:from-white dark:to-slate-900/10 lg:text-lg">
-        Give Reference
-        </span>
-      </ShimmerButton>
-      <ShimmerButton className="shadow-2xl" onClick={() => navigate('/dashboard/done-deal')}>
-        <span className="whitespace-pre-wrap text-center text-sm font-medium leading-none tracking-tight text-white dark:from-white dark:to-slate-900/10 lg:text-lg">
-        Mark Done Deal 
-        </span>
-      </ShimmerButton>
-      <ShimmerButton 
-        className="shadow-2xl" 
-        onClick={() => navigate('/one-to-ones')}
-      >
-        <span className="whitespace-pre-wrap text-center text-sm font-medium leading-none tracking-tight text-white dark:from-white dark:to-slate-900/10 lg:text-lg">
-        One To One Request
-        </span>
-      </ShimmerButton>
-          </div>
-        )}
-
-   
           <h1 className="text-xl font-bold text-start bg-gradient-to-r from-blue-600 to-white-400 text-white px-3 py-1   rounded mb-1 mt-2">
           BBNG
           </h1>
-
- 
-
-
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
           <Card className="bg-accent/40 shadow-lg hover:shadow-2xl transition-shadow transform hover:scale-105 transition-transform h-full">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -649,7 +615,7 @@ Reference Given        </CardTitle>
 
 
 
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7 mt-4 ">
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7 mt-4 hidden ">
           <Card className="col-span-full lg:col-span-4 overflow-x-auto bg-accent/40 shadow-lg hover:shadow-2xl transition-shadow transform hover:scale-105 transition-transform">
             <CardHeader>
               <CardTitle>Messages</CardTitle>
@@ -716,7 +682,7 @@ Reference Given        </CardTitle>
           </Card>
         </div>
 
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7 mt-4 ">
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7 mt-4 hidden ">
           <Card className="col-span-full lg:col-span-4 overflow-x-auto bg-accent/40 shadow-lg hover:shadow-2xl transition-shadow transform hover:scale-105 transition-transform">
             <CardHeader>
               <CardTitle>Training</CardTitle>

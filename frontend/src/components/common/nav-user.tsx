@@ -54,7 +54,7 @@ export function NavUser({
               >
                 <Avatar className="h-8 w-8 rounded-lg">
                   <AvatarImage src={user.avatar} alt={user.name} />
-                  <AvatarFallback className="rounded-lg">
+                  <AvatarFallback className="rounded-lg bg-primary text-primary-foreground border">
                     {user.avatarName}
                   </AvatarFallback>
                 </Avatar>
@@ -75,7 +75,7 @@ export function NavUser({
                 <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
                   <Avatar className="h-8 w-8 rounded-lg">
                     <AvatarImage src={user.avatar} alt={user.name} />
-                    <AvatarFallback className="rounded-lg">
+                    <AvatarFallback className="rounded-lg bg-primary text-primary-foreground">
                       {user.avatarName}
                     </AvatarFallback>
                   </Avatar>
@@ -93,13 +93,6 @@ export function NavUser({
                 >
                   <UserPen className="mr-2 h-4 w-4" />
                   Update Profile
-                </DropdownMenuItem>
-                <DropdownMenuItem
-                  onClick={() => navigate("/memberships")}
-                  className="cursor-pointer"
-                >
-                  <UserPen className="mr-2 h-4 w-4" />
-                  View Memberships
                 </DropdownMenuItem>
                 <DropdownMenuItem
                   onClick={() => navigate("/forgot-password")}

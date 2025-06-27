@@ -146,21 +146,21 @@ export default function MainLayout() {
       <AppSidebar />
       <SidebarInset>
         {/* Sticky Header */}
-        <header className="bg-blue-900 sticky top-0 z-9 flex h-16 shrink-0 items-center border-b bg-background shadow-sm transition-[width,height] ease-linear group-has-[[data-collapsible=icon]]/sidebar-wrapper:h-13 -ml-[1px] -mt-0">
+        <header className="bg-primary sticky top-0 z-9 flex h-16 shrink-0 items-center border-b shadow-sm transition-[width,height] ease-linear group-has-[[data-collapsible=icon]]/sidebar-wrapper:h-13 -ml-[1px] -mt-0">
           <div className="flex items-center justify-between w-full px-4">
             <div className="flex items-center gap-4">
               {/* Sidebar Trigger */}
-              <SidebarTrigger className="text-white -ml-1" />
+              <SidebarTrigger className="-ml-1 text-white" />
 
               {/* Welcome Message */}
-              <h1 className="text-white">Welcome, {userData?.name} <span className="text-blue-200 text-sm">({userData?.role})</span></h1>
+              <h1 className="text-white">Welcome, {userData?.name} <span className="text-primary/70 text-sm">({userData?.role})</span></h1>
             </div>
 
             {/* Dark Mode Switcher - On the right side */}
             <div className="flex items-center gap-4">
               <Button
                 onClick={toggleDarkMode}
-                className="text-white size-7 cursor-pointer"
+                className="size-7 cursor-pointer text-white"
                 variant="ghost"
                 size="icon"
                 aria-label="Toggle Dark Mode"
