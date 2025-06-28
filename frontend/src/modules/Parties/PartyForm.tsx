@@ -205,7 +205,7 @@ const PartyForm = ({
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-7">
         {/* Party Name Field */}
         <div className="grid gap-2 relative">
-          <Label htmlFor="name">Party Name</Label>
+          <Label htmlFor="partyName" className="block mb-2">Party Name <span className="text-red-500">*</span></Label>
           <Input
             id="partyName"
             placeholder="Enter party name"
@@ -213,13 +213,13 @@ const PartyForm = ({
             disabled={isFormLoading}
           />
           {errors.partyName && (
-            <span className="text-red-500 text-[10px] absolute bottom-0 translate-y-[105%]">
+            <span className="mt-1 block text-xs text-destructive">
               {errors.partyName.message}
             </span>
           )}
 
          
-            <Label htmlFor="address">Address</Label>
+            <Label htmlFor="address" className="block mb-2">Address <span className="text-red-500">*</span></Label>
             <Input
               id="address"
               placeholder="Enter address"
@@ -227,13 +227,16 @@ const PartyForm = ({
               disabled={isFormLoading}
             />
             {errors.address && (
-              <span className="text-red-500 text-[10px] absolute bottom-0 translate-y-[105%]">
+              <span className="mt-1 block text-xs text-destructive">
                 {errors.address.message}
               </span>
             )}
 
+
+            <div className="grid grid-cols-2 gap-4">
+              <div>
             {/* Mobile 1 Field */}
-            <Label htmlFor="mobile1">Mobile 1</Label>
+            <Label htmlFor="mobile1" className="block mb-2">Mobile 1 <span className="text-red-500">*</span></Label>
             <Input
               id="mobile1"
               placeholder="Enter mobile number"
@@ -241,13 +244,14 @@ const PartyForm = ({
               disabled={isFormLoading}
             />
             {errors.mobile1 && (
-              <span className="text-red-500 text-[10px] absolute bottom-0 translate-y-[105%]">
+              <span className="mt-1 block text-xs text-destructive">
                 {errors.mobile1.message}
               </span>
             )}
-
+            </div>
+            <div>
             {/* Mobile 2 Field */}
-            <Label htmlFor="mobile2">Mobile 2</Label>
+            <Label htmlFor="mobile2" className="block mb-2">Mobile 2 <span className="text-red-500">*</span></Label>
             <Input
               id="mobile2"
               placeholder="Enter mobile number"
@@ -255,13 +259,15 @@ const PartyForm = ({
               disabled={isFormLoading}
             />
             {errors.mobile2 && (
-              <span className="text-red-500 text-[10px] absolute bottom-0 translate-y-[105%]">
+              <span className="mt-1 block text-xs text-destructive">
                 {errors.mobile2.message}
               </span>
             )}
+            </div>
+            </div>
 
             {/* Reference Field */}
-            <Label htmlFor="reference">Reference</Label>
+            <Label htmlFor="reference" className="block mb-2">Reference <span className="text-red-500">*</span></Label>
             <Input
               id="reference"
               placeholder="Enter reference"
@@ -269,38 +275,43 @@ const PartyForm = ({
               disabled={isFormLoading}
             />
             {errors.reference && (
-              <span className="text-red-500 text-[10px] absolute bottom-0 translate-y-[105%]">
+              <span className="mt-1 block text-xs text-destructive">
                 {errors.reference.message}
               </span>
             )}
 
-            {/* Reference Mobile 1 Field */}
-            <Label htmlFor="referenceMobile1">Reference Mobile 1</Label>
-            <Input
-              id="referenceMobile1"
-              placeholder="Enter reference mobile number"
-              {...register("referenceMobile1")}
-              disabled={isFormLoading}
-            />
-            {errors.referenceMobile1 && (
-              <span className="text-red-500 text-[10px] absolute bottom-0 translate-y-[105%]">
-                {errors.referenceMobile1.message}
-              </span>
-            )}
-
-            {/* Reference Mobile 2 Field */}
-            <Label htmlFor="referenceMobile2">Reference Mobile 2</Label>
-            <Input
-              id="referenceMobile2"
-              placeholder="Enter reference mobile number"
-              {...register("referenceMobile2")}
-              disabled={isFormLoading}
-            />
-            {errors.referenceMobile2 && (
-              <span className="text-red-500 text-[10px] absolute bottom-0 translate-y-[105%]">
-                {errors.referenceMobile2.message}
-              </span>
-            )}  
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                {/* Reference Mobile 1 Field */}
+                <Label htmlFor="referenceMobile1" className="block mb-2">Reference Mobile 1 <span className="text-red-500">*</span></Label>
+                <Input
+                  id="referenceMobile1"
+                  placeholder="Enter reference mobile number"
+                  {...register("referenceMobile1")}
+                  disabled={isFormLoading}
+                />
+                {errors.referenceMobile1 && (
+                  <span className="mt-1 block text-xs text-destructive">
+                    {errors.referenceMobile1.message}
+                  </span>
+                )}
+              </div>
+              <div>
+                {/* Reference Mobile 2 Field */}
+                <Label htmlFor="referenceMobile2" className="block mb-2">Reference Mobile 2 <span className="text-red-500">*</span></Label>
+                <Input
+                  id="referenceMobile2"
+                  placeholder="Enter reference mobile number"
+                  {...register("referenceMobile2")}
+                  disabled={isFormLoading}
+                />
+                {errors.referenceMobile2 && (
+                  <span className="mt-1 block text-xs text-destructive">
+                    {errors.referenceMobile2.message}
+                  </span>
+                )}
+              </div>
+            </div>
         </div>
 
         {/* Form Actions */}

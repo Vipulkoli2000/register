@@ -218,7 +218,7 @@ const LoanForm = ({
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-7">
         {/* Party Field */}
         <div className="grid gap-2 relative">
-          <Label htmlFor="partyId" className="block mb-0">Party</Label>
+          <Label htmlFor="partyId" className="block mb-0">Party <span className="text-red-500">*</span></Label>
           <Controller
             name="partyId"
             control={control}
@@ -269,13 +269,13 @@ const LoanForm = ({
             )}
           />
           {errors.partyId && (
-            <span className="mt-1 block text-xs text-destructive">
+            <span className=" block text-xs text-destructive">
               {errors.partyId.message}
             </span>
           )}
       <div className="grid grid-cols-2 gap-2 relative">
         <div>
-          <Label htmlFor="loanDate" className="block mb-2">Loan Date</Label>
+          <Label htmlFor="loanDate" className="block mb-2">Loan Date <span className="text-red-500">*</span></Label>
           <Input
           type="date"
             id="loanDate"
@@ -290,7 +290,7 @@ const LoanForm = ({
           )}
           </div>
           <div>
-            <Label htmlFor="loanAmount" className="block mb-2">Loan Amount</Label>
+            <Label htmlFor="loanAmount" className="block mb-2">Loan Amount <span className="text-red-500">*</span></Label>
             <Input
             type="number"
               id="loanAmount"
@@ -306,7 +306,7 @@ const LoanForm = ({
             </div>
             </div>
             <div>
-            <Label htmlFor="interest" className="block mb-2">Interest</Label>
+            <Label htmlFor="interest" className="block mb-2">Interest (%)<span className="text-red-500">*</span></Label>
             <Input
             type="number"
               id="interest"
@@ -322,7 +322,7 @@ const LoanForm = ({
             </div>
       <div className="grid grid-cols-2 gap-2 relative">
         <div>
-          <Label htmlFor="balanceAmount" className="block mb-2">Balance Amount</Label>
+          <Label htmlFor="balanceAmount" className="block mb-2">Balance Amount <span className="text-red-500">*</span></Label>
           <Input
             type="number"
             id="balanceAmount"
@@ -337,7 +337,7 @@ const LoanForm = ({
           )}
           </div>
           <div>
-            <Label htmlFor="balanceInterest" className="block mb-2">Balance Interest</Label>
+            <Label htmlFor="balanceInterest" className="block mb-2">Balance Interest <span className="text-red-500">*</span></Label>
             <Input
             type="number"
               id="balanceInterest"
