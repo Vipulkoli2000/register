@@ -59,6 +59,11 @@ const initialData = {
           url: "/parties",
           icon: UsersRound,
         },
+        {
+          name: "Loan",
+          url: "/loans",
+          icon: UsersRound,
+        },
       
       ],
 

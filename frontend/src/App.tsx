@@ -17,6 +17,7 @@ import ResetPassword from "./modules/Auth/ResetPassword";
 import ProtectedRoute from "./components/common/protected-route"; // Correct path
 import UserList from "@/modules/User/UserList";
 import PartyList from "@/modules/Parties/PartyList";
+import LoanList from "@/modules/Loans/LoanList";
 import Profile from "./modules/profile/EditAgency";
 import Dashboard from "./modules/Dashboard/dashboard";
 import { Toaster } from "sonner";
@@ -75,6 +76,14 @@ const App = () => {
               element={
                 <ProtectedRoute>
                   <PartyList />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/loans"
+              element={
+                <ProtectedRoute>
+                  <LoanList />
                 </ProtectedRoute>
               }
             />
