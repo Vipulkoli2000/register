@@ -76,118 +76,9 @@ const login = async (req, res, next) => {
     const validationErrors = await validateRequest(schema, req.body, res);
     const { email, password } = req.body;
 
-    // First try to find a member (since members are also users)
-    const member = await prisma.member.findUnique({
-      where: { email },
-      include: {
-        users: {
-          select: {
-            id: true,
-            name: true,
-            email: true,
-            password: true,
-            role: true,
-            active: true,
-            lastLogin: true,
-          },
-        },
-        chapter: true,
-      },
-    });
 
-    if (member) {
-      if (!member.users) {
-        return res.status(500).json({
-          errors: {
-            message: "Member account is not properly linked to a user account",
-          },
-        });
-      }
 
-      console.log("Member found:", password, member.users.password);
-      // Compare password with the user's password (not member's password)
-      const isValidPassword = await bcrypt.compare(password, member.password);
-      console.log("Password match:", isValidPassword);
-      if (!isValidPassword) {
-        return res
-          .status(401)
-          .json({ errors: { message: "Invalid email or password" } });
-      }
-
-      // Check if memberships are expired (hoExpiryDate or venueExpiryDate)
-      const now = new Date();
-      let hasActiveMembership = false;
-      let expiryStatusChanged = false;
-
-      // A user is active ONLY if BOTH venue and HO memberships are set AND at least one is active
-      // If any membership is null, user should be inactive
-
-      // Check if both memberships exist (not null)
-      if (member.venueExpiryDate && member.hoExpiryDate) {
-        // Check if at least one membership is active
-        if (
-          new Date(member.venueExpiryDate) > now ||
-          new Date(member.hoExpiryDate) > now
-        ) {
-          hasActiveMembership = true;
-        }
-      } else {
-        // If any membership is null, user should be inactive
-        hasActiveMembership = false;
-      }
-
-      // If membership status differs from user's active status, update it
-      if (member.users.active !== hasActiveMembership) {
-        console.log(
-          `Updating user ID ${member.users.id} active status to ${hasActiveMembership} during login check`
-        );
-        // await prisma.user.update({
-        //   where: { id: member.users.id },
-        //   data: { active: hasActiveMembership }
-        // });
-
-        // If we're setting to inactive, we need to reject the login
-        if (!hasActiveMembership) {
-          return res.status(403).json({
-            errors: {
-              message: "Account is inactive due to expired membership",
-            },
-          });
-        }
-      }
-
-      // Regular inactive check
-      if (!member.active || !member.users.active) {
-        return res
-          .status(403)
-          .json({ errors: { message: "Account is inactive" } });
-      }
-
-      const token = jwt.sign({ userId: member.users.id }, jwtConfig.secret, {
-        expiresIn: jwtConfig.expiresIn,
-      });
-
-      // Update lastLogin timestamp
-      await prisma.user.update({
-        where: { id: member.users.id },
-        data: { lastLogin: new Date() },
-      });
-
-      // Remove sensitive data from response
-      const { password: memberPass, ...memberWithoutPassword } = member;
-      const { password: userPass, ...userWithoutPassword } = member.users;
-
-      return res.json({
-        token,
-        user: {
-          ...userWithoutPassword,
-          member: memberWithoutPassword,
-          isMember: true,
-        },
-      });
-    }
-
-    // If no member found, try to find a regular user
+    // Find user by email
     const user = await prisma.user.findUnique({
       where: { email },
       select: {
@@ -196,7 +87,7 @@ const login = async (req, res, next) => {
         email: true,
         password: true,
         role: true,
-        memberId: true,
+
         active: true,
         lastLogin: true,
       },
@@ -236,7 +127,7 @@ const login = async (req, res, next) => {
 
     res.json({
       token,
-      user: { ...userWithoutPassword, isMember: false },
+      user: userWithoutPassword,
     });
   } catch (error) {
     next(error);

@@ -155,7 +155,7 @@ const Login = () => {
         <div className="flex flex-col items-center text-center">
           <h1 className="text-2xl font-bold">Welcome back</h1>
           <p className="text-balance text-muted-foreground">
-            Login to your {appName} account
+            Login to your {appName} 
           </p>
         </div>
 

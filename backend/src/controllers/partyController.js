@@ -1,174 +1,158 @@
-/**
- * Controller for handling Party-related operations.
- *
- * Provides functions to manage parties, including retrieving, creating,
- * updating, and deleting parties based on requests routed from partyRoutes.js.
- *
- * @module controllers/partyController
- */
-
-const {PrismaClient} = require("@prisma/client");
+const { PrismaClient, Prisma } = require("@prisma/client");
 const prisma = new PrismaClient();
-const {z} = require("zod");
+const { z } = require("zod");
 const createError = require("http-errors");
-const validateRequest = require("../utils/validateRequest");
 
 /**
- * @function getParties
- * @description Retrieves a list of parties based on query parameters.
- * Handles pagination, searching, and sorting.
- * @param {object} req - Express request object. Expected query params: page, limit, search, sortBy, sortOrder.
- * @param {object} res - Express response object.
- * @returns {Promise<void>} Sends a JSON response with the list of parties or an error message.
+ * Wrap async route handlers and funnel errors through Express error middleware.
+ * Converts Prisma validation errors and known request errors into structured 400 responses.
  */
-const getParties = async (req, res, next) => {
-    try {
-        const page = parseInt(req.query.page) || 1;
-        const limit = parseInt(req.query.limit) || 10;
-        const skip = (page - 1) * limit;
-        const search = req.query.search || "";
-        const sortBy = req.query.sortBy || "name";
-        const sortOrder = req.query.sortOrder === "asc" ? "asc" : "desc";
-        
-        // Build the where clause for filtering
-        const whereClause = {
-            OR: [
-                { name: { contains: search } }
-            ]
-        };
-        
-        const states = await prisma.state.findMany({
-            where: whereClause,
-            skip,
-            take: limit,
-            orderBy: { [sortBy]: sortOrder }
-        });
-        
-        const totalStates = await prisma.state.count({
-            where: whereClause
-        });
-        const totalPages = Math.ceil(totalStates / limit);
-        
-        res.json({
-            states,
-            page,
-            totalPages,
-            totalStates
-        });
-    } catch (error) {
-        next(createError(500, "Failed to fetch states", { cause: error }));
+const asyncHandler = (fn) => (req, res, next) => {
+  Promise.resolve(fn(req, res, next)).catch((err) => {
+    // Zod or manual user errors forwarded by validateRequest
+    if (err.status === 400 && err.expose) {
+      return res
+        .status(400)
+        .json({ errors: err.errors || { message: err.message } });
     }
-};
-
-/**
- * @function getState
- * @description Retrieves a single state by ID.
- * @param {object} req - Express request object. Expected params: id.
- * @param {object} res - Express response object.
- * @returns {Promise<void>} Sends a JSON response with the state or an error message.
- */
-const getState = async (req, res, next) => {
-    try {
-        const id = parseInt(req.params.id);
-        
-        if (isNaN(id)) {
-            return next(createError(400, "Invalid state ID"));
-        }
-        
-        const state = await prisma.state.findUnique({
-            where: { id }
-        });
-        
-        if (!state) {
-            return next(createError(404, "State not found"));
-        }
-        
-        res.json(state);
-    } catch (error) {
-        next(createError(500, "Failed to fetch state", { cause: error }));
+    // Prisma validation errors
+    if (err.name === "PrismaClientValidationError") {
+      return res.status(400).json({ errors: { message: err.message } });
     }
-};
-
-/**
- * @function createState
- * @description Creates a new state.
- * @param {object} req - Express request object. Expected body: name.
- * @param {object} res - Express response object.
- * @returns {Promise<void>} Sends a JSON response with the created state or an error message.
- */
-const createState = async (req, res, next) => {
-    try {
-        const { name } = req.body;
-        const state = await prisma.state.create({
-            data: { name }
-        });
-        res.json(state);
-    } catch (error) {
-        next(createError(500, "Failed to create state", { cause: error }));
+    // Prisma known request errors (e.g., unique constraint)
+    if (err instanceof Prisma.PrismaClientKnownRequestError) {
+      if (err.code === "P2002" && err.meta?.target) {
+        const field = Array.isArray(err.meta.target)
+          ? err.meta.target[0]
+          : err.meta.target;
+        const message = `A record with that ${field} already exists.`;
+        return res
+          .status(400)
+          .json({ errors: { [field]: { type: "unique", message } } });
+      }
     }
+    // Fallback for unexpected errors
+    console.error(err);
+    return res
+      .status(500)
+      .json({ errors: { message: "Internal Server Error" } });
+  });
 };
+ 
 
-/**
- * @function updateState
- * @description Updates an existing state.
- * @param {object} req - Express request object. Expected params: id, body: name.
- * @param {object} res - Express response object.
- * @returns {Promise<void>} Sends a JSON response with the updated state or an error message.
- */
-const updateState = async (req, res, next) => {
-    try {
-        const id = parseInt(req.params.id);
-        
-        if (isNaN(id)) {
-            return next(createError(400, "Invalid state ID"));
-        }
-        
-        const { name } = req.body;
-        
-        if (!name || typeof name !== 'string') {
-            return next(createError(400, "Name is required and must be a string"));
-        }
-        
-        const state = await prisma.state.update({
-            where: { id },
-            data: { name }
-        });
-        
-        res.json(state);
-    } catch (error) {
-        if (error.code === 'P2025') {
-            return next(createError(404, "State not found"));
-        }
-        next(createError(500, "Failed to update state", { cause: error }));
-    }
+const getParties = asyncHandler(async (req, res) => {
+  const page = Math.max(1, parseInt(req.query.page) || 1);
+  const limit = Math.max(1, parseInt(req.query.limit) || 10);
+  const skip = (page - 1) * limit;
+
+  const { search = "", sortBy = "partyName", sortOrder = "asc" } = req.query;
+
+  // Map frontend sort field "name" to database column "partyName"
+  const mappedSortBy = sortBy === "name" ? "partyName" : sortBy;
+
+  const where = search
+    ? {
+        OR: [
+          { partyName: { contains: search } },
+          
+        ],
+      }
+    : {};
+
+  const [parties, total] = await Promise.all([
+    prisma.party.findMany({
+      where,
+      skip,
+      take: limit,
+      orderBy: { [mappedSortBy]: sortOrder },
+    }),
+    prisma.party.count({ where }),
+  ]);
+
+  const totalPages = Math.ceil(total / limit);
+
+  res.json({
+    parties,
+    page,
+    totalPages,
+    totalParties: total,
+  });
+});
+
+const getParty = asyncHandler(async (req, res) => {
+  const id = parseInt(req.params.id);
+  if (!id) throw createError(400, "Invalid party ID");
+
+  const party = await prisma.party.findUnique({ where: { id } });
+  if (!party) throw createError(404, "Party not found");
+
+  res.json(party);
+});
+
+const createParty = asyncHandler(async (req, res) => {
+  const schema = z.object({
+    partyName: z.string().min(1, "Party name is required").max(255),
+    address: z.string().min(1, "Address is required").max(500),
+    mobile1: z.string().min(1, "Mobile1 is required").max(20),
+    mobile2: z.string().max(20).optional().nullable(),
+    reference: z.string().max(255).optional().nullable(),
+    referenceMobile1: z.string().max(20).optional().nullable(),
+    referenceMobile2: z.string().max(20).optional().nullable(),
+  });
+
+  // Will throw Zod errors caught by asyncHandler
+  await schema.parseAsync(req.body);
+
+  const party = await prisma.party.create({ data: req.body });
+  res.status(201).json(party);
+});
+
+const updateParty = asyncHandler(async (req, res) => {
+  const id = parseInt(req.params.id);
+  if (!id) throw createError(400, "Invalid party ID");
+
+  const schema = z
+    .object({
+      partyName: z.string().min(1).max(255).optional(),
+      address: z.string().min(1).max(500).optional(),
+      mobile1: z.string().min(1).max(20).optional(),
+      mobile2: z.string().max(20).optional().nullable(),
+      reference: z.string().max(255).optional().nullable(),
+      referenceMobile1: z.string().max(20).optional().nullable(),
+      referenceMobile2: z.string().max(20).optional().nullable(),
+    })
+    .refine((data) => Object.keys(data).length > 0, {
+      message: "At least one field is required",
+    });
+
+  await schema.parseAsync(req.body);
+
+  const existing = await prisma.party.findUnique({ where: { id } });
+  if (!existing) throw createError(404, "Party not found");
+
+  const updated = await prisma.party.update({
+    where: { id },
+    data: req.body,
+  });
+
+  res.json(updated);
+});
+
+const deleteParty = asyncHandler(async (req, res) => {
+  const id = parseInt(req.params.id);
+  if (!id) throw createError(400, "Invalid party ID");
+
+  const existing = await prisma.party.findUnique({ where: { id } });
+  if (!existing) throw createError(404, "Party not found");
+
+  await prisma.party.delete({ where: { id } });
+  res.json({ message: "Party deleted successfully" });
+});
+
+module.exports = {
+  getParties,
+  createParty,
+  getParty,
+  updateParty,
+  deleteParty,
 };
-
-/**
- * @function deleteState
- * @description Deletes a state by ID.
- * @param {object} req - Express request object. Expected params: id.
- * @param {object} res - Express response object.
- * @returns {Promise<void>} Sends a JSON response with a success message or an error message.
- */
-const deleteState = async (req, res, next) => {
-    try {
-        const id = parseInt(req.params.id);
-        
-        if (isNaN(id)) {
-            return next(createError(400, "Invalid state ID"));
-        }
-        
-        await prisma.state.delete({
-            where: { id }
-        });
-        
-        res.json({ message: "State deleted successfully" });
-    } catch (error) {
-        if (error.code === 'P2025') {
-            return next(createError(404, "State not found"));
-        }
-        next(createError(500, "Failed to delete state", { cause: error }));
-    }
-};
-
-module.exports = { getStates, getState, createState, updateState, deleteState };

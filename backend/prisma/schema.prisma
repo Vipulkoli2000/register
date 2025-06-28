@@ -19,38 +19,31 @@ model User {
   resetTokenExpires DateTime?
   createdAt         DateTime  @default(now())
   updatedAt         DateTime  @updatedAt
-
-  member   Member? @relation("UserMemberRelation")
-  memberId Int? // This field still exists. If Member.userId is the true FK for the user, this might be redundant or for a different purpose.
-  // Assuming Member.userId is the primary link to User for member-specific data.
-
-  // Relation for ZoneRoleHistory
-  zoneRoleHistoriesPerformed ZoneRoleHistory[] @relation("UserPerformedZoneRoleHistory")
-
   @@map("users")
 }
 
 model Party {
-  id         Int       @id @default(autoincrement())
-  partyName  String
-  address    String
-  mobile1    String
-  mobile2    String
-  reference   String
-  referenceMobile1 String
-  referenceMobile2 String
-  createdAt         DateTime  @default(now())
-  updatedAt         DateTime  @updatedAt
+  id               Int       @id @default(autoincrement())
+  partyName        String
+  address          String
+  mobile1          String
+  mobile2          String?
+  reference        String?
+  referenceMobile1 String?
+  referenceMobile2 String?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
 }
 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
+
+model Loan {
+  id               Int       @id @default(autoincrement())
+  partyId          Int
+  loanDate         DateTime
+  loanAmount       Float
+  balanceAmount    Float
+  interest         Float
+  balanceInterest  Float
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+}

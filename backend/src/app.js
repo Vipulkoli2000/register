@@ -8,6 +8,7 @@ const path = require("path");
 require("dotenv").config();
 const roleRoutes = require("./routes/roles");
 const userRoutes = require("./routes/users");
+const partyRoutes = require("./routes/parties");
 const authRoutes = require("./routes/auth");
 const swaggerRouter = require("./swagger");
 
@@ -68,6 +69,7 @@ app.use("/uploads", express.static(uploadsPath));
 app.use("/api/auth", authRoutes);
 app.use("/api/roles", roleRoutes);
 app.use("/api/users", userRoutes);
+app.use("/api/parties", partyRoutes);
 app.use(swaggerRouter);
 
 app.get("*", (req, res, next) => {
