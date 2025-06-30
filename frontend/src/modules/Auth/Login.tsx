@@ -145,19 +145,16 @@ const Login = () => {
   const isLoading = loginMutation.isPending;
 
   return (
-    // When submitting, RHF first runs Zod validation. If that passes, onSubmit is called.
-    // If Zod fails, its errors show up in the `errors` object immediately.
-    // If Zod passes but the server returns validation errors, our `onError` handler
-    // calls `setError`, which also updates the `errors` object.
-    <form className="p-6 md:p-8" onSubmit={handleSubmit(onSubmit)}>
-      <div className="flex flex-col gap-6">
-        {/* Header */}
-        <div className="flex flex-col items-center text-center">
-          <h1 className="text-2xl font-bold">Welcome back</h1>
-          <p className="text-balance text-muted-foreground">
-            Login to your {appName} 
-          </p>
-        </div>
+    <div className="w-full max-w-sm mx-auto">
+      <form onSubmit={handleSubmit(onSubmit)}>
+        <div className="flex flex-col gap-6">
+          {/* Header */}
+          <div className="flex flex-col space-y-2 text-center">
+            <h1 className="text-2xl font-semibold tracking-tight">Login to your account</h1>
+            <p className="text-sm text-muted-foreground">
+              Enter your credentials to access your {appName} account
+            </p>
+          </div>
 
         {/* Email Field */}
         <div className="grid gap-2 relative pb-3">
@@ -226,16 +223,17 @@ const Login = () => {
         </Button>
 
         {/* Registration Link */}
-        {/* {allowRegistration && (
+        {allowRegistration && (
           <div className="text-center text-sm">
             Don't have an account?{" "}
-            <a href="/register" className="underline underline-offset-4">
-              Register
+            <a href="/register" className="underline underline-offset-4 text-primary hover:text-primary/80">
+              Sign up
             </a>
           </div>
-        )} */}
+        )}
       </div>
     </form>
+    </div>
   );
 };
 
