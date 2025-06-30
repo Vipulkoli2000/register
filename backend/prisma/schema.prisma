@@ -46,6 +46,25 @@ model Loan {
   balanceAmount    Float
   interest         Float
   balanceInterest  Float
+  entries          Entry[]
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+}
+
+model Entry {
+  id               Int       @id @default(autoincrement())
+
+  loanId           Int
+  loan             Loan      @relation(fields: [loanId], references: [id], onDelete: Cascade)
+
+  entryDate        DateTime
+  balanceAmount    Float
+  interestAmount   Float
+
+  receivedDate     DateTime?
+  receivedAmount   Float?
+  receivedInterest Float?
+
   createdAt        DateTime  @default(now())
   updatedAt        DateTime  @updatedAt
 }

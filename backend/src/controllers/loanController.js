@@ -102,17 +102,20 @@ const createLoan = asyncHandler(async (req, res) => {
     partyId: z.number({ required_error: "partyId is required" }).int().positive(),
     loanDate: z.coerce.date({ required_error: "loanDate is required" }),
     loanAmount: z.number({ required_error: "loanAmount is required" }).positive(),
-    balanceAmount: z.number({ required_error: "balanceAmount is required" }).nonnegative(),
+    // balanceAmount is optional in request, will default to loanAmount
+    balanceAmount: z.number().nonnegative().optional(),
     interest: z.number({ required_error: "interest is required" }).nonnegative(),
     balanceInterest: z.number({ required_error: "balanceInterest is required" }).nonnegative(),
   });
 
-  await schema.parseAsync(req.body);
+  const validatedData = await schema.parseAsync(req.body);
 
   const loan = await prisma.loan.create({
     data: {
-      ...req.body,
-      loanDate: new Date(req.body.loanDate), // Ensure JS Date
+      ...validatedData,
+      // Set balance amount to loan amount if not provided or if they should be equal
+      balanceAmount: validatedData.balanceAmount ?? validatedData.loanAmount,
+      loanDate: new Date(validatedData.loanDate), // Ensure JS Date
     },
   });
 

@@ -18,7 +18,7 @@ import ProtectedRoute from "./components/common/protected-route"; // Correct pat
 import UserList from "@/modules/User/UserList";
 import PartyList from "@/modules/Parties/PartyList";
 import LoanList from "@/modules/Loans/LoanList";
-import EntriesList from "@/modules/Entries/EntriesList";
+import EntriesList from "@/modules/Loans/Entries";
 import Profile from "./modules/profile/EditAgency";
  import Dashboard from "./modules/Dashboard/dashboard";
 import { Toaster } from "sonner";

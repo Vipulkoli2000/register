@@ -64,11 +64,6 @@ const initialData = {
           url: "/loans",
           icon: UsersRound,
         },
-        {
-          name: "Entries",
-          url: "/entries",
-          icon: FileText,
-        },
       
       ],
 

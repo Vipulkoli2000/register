@@ -10,6 +10,7 @@ const roleRoutes = require("./routes/roles");
 const userRoutes = require("./routes/users");
 const partyRoutes = require("./routes/parties");
 const loanRoutes = require("./routes/loans");
+const entryRoutes = require("./routes/entries");
 const authRoutes = require("./routes/auth");
 const swaggerRouter = require("./swagger");
 
@@ -72,6 +73,7 @@ app.use("/api/roles", roleRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/parties", partyRoutes);
 app.use("/api/loans", loanRoutes);
+app.use("/api/entries", entryRoutes);
 app.use(swaggerRouter);
 
 app.get("*", (req, res, next) => {

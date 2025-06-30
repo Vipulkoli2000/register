@@ -41,8 +41,7 @@ const loanFormSchema = z.object({
     .nonempty("Balance amount is required"),
     interest: z.string()
     .nonempty("Interest is required"),
-    balanceInterest: z.string()
-    .nonempty("Balance interest is required"),
+    balanceInterest: z.string().optional(),
 });
 
 type LoanFormInputs = z.infer<typeof loanFormSchema>;
@@ -70,18 +69,29 @@ const LoanForm = ({
     handleSubmit,
     setValue,
     setError,
+    watch,
     formState: { errors },
   } = useForm<LoanFormInputs>({
     resolver: zodResolver(loanFormSchema),
     defaultValues: {
       partyId: "",
-      loanDate: "",
+      loanDate: mode === "create" ? new Date().toISOString().split("T")[0] : "",
       loanAmount: "",
       balanceAmount: "",
       interest: "",
       balanceInterest: "",
     },
   });
+
+  // Watch loan amount to auto-populate balance amount
+  const loanAmount = watch("loanAmount");
+  
+  // Auto-populate balance amount when loan amount changes (only in create mode)
+  useEffect(() => {
+    if (mode === "create" && loanAmount) {
+      setValue("balanceAmount", loanAmount);
+    }
+  }, [loanAmount, setValue, mode]);
 
   // Query for fetching loan data in edit mode
   const { isLoading: isFetchingLoan } = useQuery({
@@ -322,13 +332,17 @@ const LoanForm = ({
             </div>
       <div className="grid grid-cols-2 gap-2 relative">
         <div>
-          <Label htmlFor="balanceAmount" className="block mb-2">Balance Amount <span className="text-red-500">*</span></Label>
+          <Label htmlFor="balanceAmount" className="block mb-2">
+            Balance Amount <span className="text-red-500">*</span>
+           
+          </Label>
           <Input
             type="number"
             id="balanceAmount"
             placeholder="Enter balance amount"
             {...register("balanceAmount")}
             disabled={isFormLoading}
+            className={mode === "create" ? "bg-gray-50" : ""}
           />
           {errors.balanceAmount && (
             <span className="mt-1 block text-xs text-destructive">
@@ -337,7 +351,7 @@ const LoanForm = ({
           )}
           </div>
           <div>
-            <Label htmlFor="balanceInterest" className="block mb-2">Balance Interest <span className="text-red-500">*</span></Label>
+            <Label htmlFor="balanceInterest" className="block mb-2">Balance Interest</Label>
             <Input
             type="number"
               id="balanceInterest"

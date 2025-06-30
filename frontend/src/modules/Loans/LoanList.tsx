@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { format } from "date-fns";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
@@ -27,7 +28,8 @@ import {
   Trash2,
   ChevronUp,
   ChevronDown,
-  PlusCircle
+  PlusCircle,
+  List
 } from "lucide-react";
 import {
   AlertDialog,
@@ -47,6 +49,7 @@ import CreateLoan from "./CreateLOan";
 import EditLoan from "./EditLoan";
 
 const LoanList = () => {
+  const navigate = useNavigate();
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState("");
   const [limit, setLimit] = useState(10);
@@ -224,6 +227,16 @@ const LoanList = () => {
                       <TableCell>{loan.balanceInterest}</TableCell>
                       <TableCell className="text-right">
                         <div className="flex justify-end gap-2">
+                              {/* Entries Button */}
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => navigate(`/entries?loanId=${loan.id}`)}
+                                title="Entries"
+                              >
+                                <List className="h-4 w-4" />
+                                <span className="sr-only">Entries</span>
+                              </Button>
                           <Button
                             variant="ghost"
                             size="icon"
@@ -244,7 +257,7 @@ const LoanList = () => {
                               <AlertDialogHeader>
                                 <AlertDialogTitle>Confirm Deletion</AlertDialogTitle>
                                 <AlertDialogDescription>
-                                  Are you sure you want to delete this loan? This action cannot be undone.
+                                  Are you sure you want to delete this loan? <strong>All entries linked to this loan will be deleted as well.</strong> This action cannot be undone.
                                 </AlertDialogDescription>
                               </AlertDialogHeader>
                               <AlertDialogFooter>
