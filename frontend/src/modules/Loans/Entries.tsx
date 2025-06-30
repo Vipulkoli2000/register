@@ -24,6 +24,7 @@ import CustomPagination from "@/components/common/custom-pagination";
 import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { motion, AnimatePresence } from "framer-motion";
 import { get, post } from "@/services/apiService";
+import { formatCurrency } from "@/lib/formatter";
 
 // -------------------- TYPES --------------------
 interface Entry {
@@ -208,10 +209,10 @@ const Entries = () => {
                     data.entries.map((entry) => (
                       <TableRow key={entry.id}>
                         <TableCell>{new Date(entry.entryDate).toLocaleDateString()}</TableCell>
-                        <TableCell>{entry.balanceAmount}</TableCell>
-                        <TableCell>{entry.interestAmount}</TableCell>
-                        <TableCell>{entry.receivedAmount ?? "-"}</TableCell>
-                        <TableCell>{entry.receivedInterest ?? "-"}</TableCell>
+                        <TableCell>{formatCurrency(entry.balanceAmount)}</TableCell>
+                        <TableCell>{formatCurrency(entry.interestAmount)}</TableCell>
+                        <TableCell>{entry.receivedAmount ? formatCurrency(entry.receivedAmount) : "-"}</TableCell>
+                        <TableCell>{entry.receivedInterest ? formatCurrency(entry.receivedInterest) : "-"}</TableCell>
                       </TableRow>
                     ))
                   ) : (
@@ -269,7 +270,7 @@ const CreateEntryForm = ({
     interestPercentage: "",
     interestAmount: "",
     totalPendingInterest: "",
-    receivedDate: "",
+    receivedDate: getTodayDate(),
     receivedAmount: "",
     receivedInterest: "",
   });
@@ -392,29 +393,35 @@ const CreateEntryForm = ({
               <label className="block text-sm font-medium mb-1" htmlFor="balanceAmount">
                 Current Balance Amount
               </label>
-              <Input
-                id="balanceAmount"
-                name="balanceAmount"
-                type="number"
-                step="0.01"
-                value={form.balanceAmount}
-                disabled
-                className="bg-gray-100 cursor-not-allowed"
-              />
+              <div className="relative">
+                <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-500">₹</span>
+                <Input
+                  id="balanceAmount"
+                  name="balanceAmount"
+                  type="number"
+                  step="0.01"
+                  value={form.balanceAmount}
+                  onChange={handleBalanceOrPercentageChange}
+                  className="pl-7 bg-gray-100 cursor-not-allowed"
+                />
+              </div>
             </div>
             <div>
               <label className="block text-sm font-medium mb-1" htmlFor="balanceInterest">
                 Current Balance Interest
               </label>
-              <Input
-                id="balanceInterest"
-                name="balanceInterest"
-                type="number"
-                step="0.01"
-                value={form.balanceInterest}
-                disabled
-                className="bg-gray-100 cursor-not-allowed"
-              />
+              <div className="relative">
+                <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-500">₹</span>
+                <Input
+                  id="balanceInterest"
+                  name="balanceInterest"
+                  type="number"
+                  step="0.01"
+                  value={form.balanceInterest}
+                  disabled
+                  className="pl-7 bg-gray-100 cursor-not-allowed"
+                />
+              </div>
             </div>
             <div>
               <label className="block text-sm font-medium mb-1" htmlFor="interestPercentage">
@@ -444,30 +451,33 @@ const CreateEntryForm = ({
                     <div className="space-y-2 text-sm">
                       <div className="flex justify-between">
                         <span>Interest on Balance</span>
-                        <span className="font-semibold">{((parseFloat(form.balanceAmount || '0') * parseFloat(form.interestPercentage || '0')) / 100).toFixed(2)}</span>
+                        <span className="font-semibold">{formatCurrency((parseFloat(form.balanceAmount || '0') * parseFloat(form.interestPercentage || '0')) / 100)}</span>
                       </div>
                       <div className="flex justify-between">
                         <span>Current Balance Interest</span>
-                        <span className="font-semibold">{form.balanceInterest}</span>
+                        <span className="font-semibold">{formatCurrency(parseFloat(form.balanceInterest || '0'))}</span>
                       </div>
                       <div className="flex justify-between border-t pt-2 mt-2 font-semibold">
                         <span>New Interest Amount</span>
-                        <span className="text-lg">{form.interestAmount}</span>
+                        <span className="text-lg">{formatCurrency(parseFloat(form.interestAmount || '0'))}</span>
                       </div>
                     </div>
                   </DialogContent>
                 </Dialog>
                  
               </label>
-              <Input
-                id="interestAmount"
-                name="interestAmount"
-                type="number"
-                step="0.01"
-                value={form.interestAmount}
-                disabled
-                className="bg-gray-100 cursor-not-allowed"
-              />
+              <div className="relative">
+                <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-500">₹</span>
+                <Input
+                  id="interestAmount"
+                  name="interestAmount"
+                  type="number"
+                  step="0.01"
+                  value={form.interestAmount}
+                  disabled
+                  className="pl-7 bg-gray-100 cursor-not-allowed"
+                />
+              </div>
             </div>
           </div>
           
@@ -492,14 +502,18 @@ const CreateEntryForm = ({
           <label className="block text-sm font-medium mb-1" htmlFor="receivedAmount">
             Received Amount
           </label>
-          <Input
-            id="receivedAmount"
-            name="receivedAmount"
-            type="number"
-            step="0.01"
-            value={form.receivedAmount}
-            onChange={handleChange}
-          />
+          <div className="relative">
+            <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-500">₹</span>
+            <Input
+              id="receivedAmount"
+              name="receivedAmount"
+              type="number"
+              step="0.01"
+              value={form.receivedAmount}
+              onChange={handleChange}
+              className="pl-7"
+            />
+          </div>
         </div>
       </div>
 
@@ -507,14 +521,18 @@ const CreateEntryForm = ({
         <label className="block text-sm font-medium mb-1" htmlFor="receivedInterest">
           Received Interest
         </label>
-        <Input
-          id="receivedInterest"
-          name="receivedInterest"
-          type="number"
-          step="0.01"
-          value={form.receivedInterest}
-          onChange={handleChange}
-        />
+        <div className="relative">
+          <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-500">₹</span>
+          <Input
+            id="receivedInterest"
+            name="receivedInterest"
+            type="number"
+            step="0.01"
+            value={form.receivedInterest}
+            onChange={handleChange}
+            className="pl-7"
+          />
+        </div>
       </div>
 
       <div className="flex justify-end gap-2">

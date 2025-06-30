@@ -17,4 +17,11 @@ export function formatDate(date: Date | string): string;
  * @param dateTime - The date and time to format.
  * @returns The formatted date and time string.
  */
-export function formatDateTime(dateTime: Date | string): string; 
+export function formatDateTime(dateTime: Date | string): string;
+
+/**
+ * Formats a number as a percentage.
+ * @param value - The number to format.
+ * @returns The formatted percentage string.
+ */
+export function formatPercentage(value: number): string; 

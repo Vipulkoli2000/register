@@ -301,13 +301,19 @@ const LoanForm = ({
           </div>
           <div>
             <Label htmlFor="loanAmount" className="block mb-2">Loan Amount <span className="text-red-500">*</span></Label>
-            <Input
-            type="number"
-              id="loanAmount"
-              placeholder="Enter loan amount"
-              {...register("loanAmount")}
-              disabled={isFormLoading}
-            />
+            <div className="relative">
+              <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-500">
+                ₹
+              </span>
+              <Input
+                type="number"
+                id="loanAmount"
+                placeholder="Enter loan amount"
+                {...register("loanAmount")}
+                disabled={isFormLoading}
+                className="pl-7"
+              />
+            </div>
             {errors.loanAmount && (
               <span className="mt-1 block text-xs text-destructive">
                 {errors.loanAmount.message}
@@ -336,14 +342,19 @@ const LoanForm = ({
             Balance Amount <span className="text-red-500">*</span>
            
           </Label>
-          <Input
-            type="number"
-            id="balanceAmount"
-            placeholder="Enter balance amount"
-            {...register("balanceAmount")}
-            disabled={isFormLoading}
-            className={mode === "create" ? "bg-gray-50" : ""}
-          />
+          <div className="relative">
+            <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-500">
+              ₹
+            </span>
+            <Input
+              type="number"
+              id="balanceAmount"
+              placeholder="Enter balance amount"
+              {...register("balanceAmount")}
+              disabled={isFormLoading}
+              className={`pl-7 ${mode === "create" ? "bg-gray-50" : ""}`}
+            />
+          </div>
           {errors.balanceAmount && (
             <span className="mt-1 block text-xs text-destructive">
               {errors.balanceAmount.message}

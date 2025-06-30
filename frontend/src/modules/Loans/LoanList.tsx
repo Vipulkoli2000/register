@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { format } from "date-fns";
+import { formatCurrency, formatPercentage } from "@/lib/formatter";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -221,10 +222,10 @@ const LoanList = () => {
                     <TableRow key={loan.id}>
                       <TableCell>{loan.party?.partyName || loan.partyName}</TableCell>
                        <TableCell>{format(new Date(loan.loanDate), "dd-MM-yyyy")}</TableCell>
-                      <TableCell>{loan.loanAmount}</TableCell>
-                      <TableCell>{loan.balanceAmount}</TableCell>
-                      <TableCell>{loan.interest}</TableCell>
-                      <TableCell>{loan.balanceInterest}</TableCell>
+                      <TableCell>{formatCurrency(loan.loanAmount)}</TableCell>
+                      <TableCell>{formatCurrency(loan.balanceAmount)}</TableCell>
+                      <TableCell>{formatPercentage(loan.interest)}</TableCell>
+                      <TableCell>{formatCurrency(loan.balanceInterest)}</TableCell>
                       <TableCell className="text-right">
                         <div className="flex justify-end gap-2">
                               {/* Entries Button */}

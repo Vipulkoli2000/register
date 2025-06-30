@@ -4,12 +4,14 @@
  * @returns {string} - The formatted currency string.
  */
 export function formatCurrency(amount) {
-  const locale = import.meta.env.VITE_LOCALE || "en-US";
-  const currency = import.meta.env.VITE_CURRENCY || "USD";
+  const locale = import.meta.env.VITE_LOCALE || "en-IN";
+  const currency = import.meta.env.VITE_CURRENCY || "INR";
 
   return new Intl.NumberFormat(locale, {
     style: "currency",
     currency: currency,
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
   }).format(amount);
 }
 
@@ -47,4 +49,18 @@ export function formatDateTime(dateTime) {
     minute: "2-digit",
     // second: '2-digit',
   }).format(parsedDateTime);
+}
+
+/**
+ * Formats a number as a percentage.
+ * @param {number} value - The number to format.
+ * @returns {string} - The formatted percentage string.
+ */
+export function formatPercentage(value) {
+  const locale = import.meta.env.VITE_LOCALE || "en-US";
+  return new Intl.NumberFormat(locale, {
+    style: 'percent',
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 2,
+  }).format(value / 100);
 }

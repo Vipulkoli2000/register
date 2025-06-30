@@ -36,18 +36,14 @@ const partyFormSchema = z.object({
     mobile1: z.string()
     .min(1, "Mobile number is required")
     .max(255, "Mobile number must not exceed 255 characters"),
-    mobile2: z.string()
-    .min(1, "Mobile number is required")
-    .max(255, "Mobile number must not exceed 255 characters"),
+    mobile2: z.any().optional(),
     reference: z.string()
     .min(1, "Reference is required")
     .max(255, "Reference must not exceed 255 characters"),
     referenceMobile1: z.string()
     .min(1, "Reference mobile number is required")
     .max(255, "Reference mobile number must not exceed 255 characters"),
-    referenceMobile2: z.string()
-    .min(1, "Reference mobile number is required")
-    .max(255, "Reference mobile number must not exceed 255 characters"),
+    referenceMobile2: z.any().optional(),
 });
 
 type PartyFormInputs = z.infer<typeof partyFormSchema>;
@@ -242,6 +238,8 @@ const PartyForm = ({
               placeholder="Enter mobile number"
               {...register("mobile1")}
               disabled={isFormLoading}
+              maxLength={10}
+type="number"
             />
             {errors.mobile1 && (
               <span className="mt-1 block text-xs text-destructive">
@@ -251,12 +249,14 @@ const PartyForm = ({
             </div>
             <div>
             {/* Mobile 2 Field */}
-            <Label htmlFor="mobile2" className="block mb-2">Mobile 2 <span className="text-red-500">*</span></Label>
+            <Label htmlFor="mobile2" className="block mb-2">Mobile 2</Label>
             <Input
               id="mobile2"
               placeholder="Enter mobile number"
               {...register("mobile2")}
               disabled={isFormLoading}
+              maxLength={10}
+type="number"
             />
             {errors.mobile2 && (
               <span className="mt-1 block text-xs text-destructive">
@@ -289,6 +289,8 @@ const PartyForm = ({
                   placeholder="Enter reference mobile number"
                   {...register("referenceMobile1")}
                   disabled={isFormLoading}
+                  maxLength={10}
+                  type="number"
                 />
                 {errors.referenceMobile1 && (
                   <span className="mt-1 block text-xs text-destructive">
@@ -298,13 +300,15 @@ const PartyForm = ({
               </div>
               <div>
                 {/* Reference Mobile 2 Field */}
-                <Label htmlFor="referenceMobile2" className="block mb-2">Reference Mobile 2 <span className="text-red-500">*</span></Label>
+                <Label htmlFor="referenceMobile2" className="block mb-2">Reference Mobile 2</Label>
                 <Input
                   id="referenceMobile2"
                   placeholder="Enter reference mobile number"
                   {...register("referenceMobile2")}
                   disabled={isFormLoading}
-                />
+                  maxLength={10}
+                  type="number"
+                 />
                 {errors.referenceMobile2 && (
                   <span className="mt-1 block text-xs text-destructive">
                     {errors.referenceMobile2.message}
