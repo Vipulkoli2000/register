@@ -19,7 +19,7 @@ const MEMBERS_DATA: Record<string, MemberData> = {
     meetingsAttended: 45,
     totalMeetings: 50,
     projects: [
-      { name: 'BBNG Platform', role: 'Lead Developer', status: 'Active' },
+      { name: 'CrediSphere Platform', role: 'Lead Developer', status: 'Active' },
       { name: 'Mobile App', role: 'Frontend Developer', status: 'Completed' }
     ],
     achievements: ['Employee of the Month - March 2023', 'Completed AWS Certification'],
@@ -39,7 +39,7 @@ const MEMBERS_DATA: Record<string, MemberData> = {
     meetingsAttended: 38,
     totalMeetings: 40,
     projects: [
-      { name: 'BBNG Platform', role: 'Product Manager', status: 'Active' },
+      { name: 'CrediSphere Platform', role: 'Product Manager', status: 'Active' },
       { name: 'Analytics Dashboard', role: 'Product Owner', status: 'Planning' }
     ],
     achievements: ['Highest Customer Satisfaction Q2 2023', 'Product Launch Excellence Award'],
@@ -59,7 +59,7 @@ const MEMBERS_DATA: Record<string, MemberData> = {
     meetingsAttended: 30,
     totalMeetings: 35,
     projects: [
-      { name: 'BBNG Platform', role: 'UX Designer', status: 'Active' },
+      { name: 'CrediSphere Platform', role: 'UX Designer', status: 'Active' },
       { name: 'Mobile App', role: 'UI Designer', status: 'Completed' }
     ],
     achievements: ['Design Excellence Award 2023'],

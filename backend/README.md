@@ -1,4 +1,4 @@
-# bbngApi
+# CrediSphereApi
 
 A simple Node.js REST API project built with Express, Prisma, and JWT.
 
@@ -47,7 +47,7 @@ A simple Node.js REST API project built with Express, Prisma, and JWT.
 
     ```
     PORT=3000
-    DATABASE_URL="mysql://root:your_password@localhost:3306/bbng"
+    DATABASE_URL="mysql://root:your_password@localhost:3306/CrediSphere"
     JWT_SECRET="your_jwt_secret"
     EMAIL_TRANSPORTER="smtp" # Options: smtp, mailtrap, sendgrid
     EMAIL_HOST="smtp.example.com"

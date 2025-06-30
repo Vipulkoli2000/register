@@ -18,8 +18,10 @@ import {
   PlusCircle,
   ChevronUp,
   ChevronDown,
+  Info,
 } from "lucide-react";
 import CustomPagination from "@/components/common/custom-pagination";
+import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { motion, AnimatePresence } from "framer-motion";
 import { get, post } from "@/services/apiService";
 
@@ -123,7 +125,7 @@ const Entries = () => {
 
   // -------------------- RENDER --------------------
   return (
-    <div className="p-4 space-y-4">
+    <motion.div layout className="p-4 space-y-4">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-semibold">Entries</h1>
         <Button
@@ -138,10 +140,10 @@ const Entries = () => {
       <AnimatePresence>
         {showCreateForm && (
           <motion.div
-            key="create-entry-form"
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
+            layout key="create-entry-form"
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: 'auto', opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
             transition={{ duration: 0.3 }}
           >
             <Card>
@@ -237,7 +239,7 @@ const Entries = () => {
         </CardContent>
       </Card>
 
-    </div>
+    </motion.div>
   );
 };
 
@@ -429,8 +431,33 @@ const CreateEntryForm = ({
               />
             </div>
             <div>
-              <label className="block text-sm font-medium mb-1" htmlFor="interestAmount">
+              <label className="block text-sm font-medium mb-1 flex items-center gap-1" htmlFor="interestAmount">
                 New Interest Amount
+                <Dialog>
+                  <DialogTrigger asChild>
+                    <Info className="w-4 h-4 text-blue-600 cursor-pointer" />
+                  </DialogTrigger>
+                  <DialogContent className="max-w-md">
+                    <DialogHeader>
+                      <DialogTitle>Interest Calculation</DialogTitle>
+                    </DialogHeader>
+                    <div className="space-y-2 text-sm">
+                      <div className="flex justify-between">
+                        <span>Interest on Balance</span>
+                        <span className="font-semibold">{((parseFloat(form.balanceAmount || '0') * parseFloat(form.interestPercentage || '0')) / 100).toFixed(2)}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>Current Balance Interest</span>
+                        <span className="font-semibold">{form.balanceInterest}</span>
+                      </div>
+                      <div className="flex justify-between border-t pt-2 mt-2 font-semibold">
+                        <span>New Interest Amount</span>
+                        <span className="text-lg">{form.interestAmount}</span>
+                      </div>
+                    </div>
+                  </DialogContent>
+                </Dialog>
+                 
               </label>
               <Input
                 id="interestAmount"
@@ -444,19 +471,7 @@ const CreateEntryForm = ({
             </div>
           </div>
           
-          <div className="bg-blue-50 p-4 rounded-lg">
-            <h4 className="font-medium text-blue-900 mb-2">Interest Calculation Breakdown</h4>
-            <div className="grid grid-cols-1 gap-2 text-sm text-blue-800">
-              <div>Interest on Balance: {form.balanceAmount} × {form.interestPercentage}% = <span className="font-semibold">{((parseFloat(form.balanceAmount || '0') * parseFloat(form.interestPercentage || '0')) / 100).toFixed(2)}</span></div>
-              <div>Current Balance Interest: <span className="font-semibold">{form.balanceInterest}</span></div>
-              <div className="border-t pt-2 mt-2 font-semibold">
-                <div>New Interest Amount: {((parseFloat(form.balanceAmount || '0') * parseFloat(form.interestPercentage || '0')) / 100).toFixed(2)} + {form.balanceInterest} = <span className="text-lg">{form.interestAmount}</span></div>
-              </div>
-              <div className="border-t pt-2 mt-2">
-                <div>Total After Adding New Interest: <span className="font-semibold">{form.totalPendingInterest}</span></div>
-              </div>
-            </div>
-          </div>
+         
         </>
       )}
 

@@ -31,7 +31,28 @@ function expiryDate(months = 6) {
 }
 
 async function main() {
-  console.log('Starting seeding...');
+  console.log('Seeding admin user...');
+
+  // Wipe existing data for core tables
+  await prisma.entry.deleteMany();
+  await prisma.loan.deleteMany();
+  await prisma.party.deleteMany();
+  await prisma.user.deleteMany();
+
+  // Create default admin credentials
+  const passwordHash = await bcrypt.hash('abcd123', SALT_ROUNDS);
+  await prisma.user.create({
+    data: {
+      name: 'Admin',
+      email: 'admin@gmail.com',
+      password: passwordHash,
+      role: 'admin',
+      active: true,
+    },
+  });
+
+  console.log('Admin user created.');
+  return;
 
   // Clean up existing data
   await prisma.$transaction([
@@ -168,13 +189,13 @@ async function main() {
     prisma.siteSetting.create({
       data: {
         key: 'site_name',
-        value: 'BBNG Network',
+        value: 'CrediSphere Network',
       },
     }),
     prisma.siteSetting.create({
       data: {
         key: 'contact_email',
-        value: 'info@bbng.com',
+        value: 'info@CrediSphere.com',
       },
     }),
     prisma.siteSetting.create({
@@ -219,7 +240,7 @@ async function main() {
   await Promise.all([
     prisma.message.create({
       data: {
-        heading: 'Welcome to BBNG Network',
+        heading: 'Welcome to CrediSphere Network',
         powerteam: 'All',
         message: 'We are excited to have you as a part of our growing business network!',
       },

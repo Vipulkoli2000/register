@@ -162,7 +162,7 @@ const LoanList = () => {
             <div className="relative flex-1 min-w-[250px]">
               <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
               <Input
-                placeholder="Search Loans..."
+                placeholder="Search Loans by Party Name..."
                 value={search}
                 onChange={handleSearchChange}
                 className="pl-8 w-full"

@@ -1,6 +1,5 @@
 import * as React from "react";
 import {
-  ArrowUpCircleIcon,
   AudioWaveform,
   BookOpen,
   Bot,
@@ -49,11 +48,7 @@ const initialData = {
           url: "/dashboard",
           icon: UsersRound, 
         },
-        {
-          name: "User",
-          url: "/users",
-          icon: UsersRound,
-        },
+        
         {
           name: "Party",
           url: "/parties",
@@ -156,14 +151,15 @@ function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
              <div className="flex items-center gap-2  justify-between">
              <a
               className="flex items-center gap-2"
+              href="/dashboard"
               >
-                <ArrowUpCircleIcon className="h-5 w-5" />
+                <img src="/credisphere-logo.svg" alt="CrediSphere logo" className="h-6 w-6" />
                 <span className="text-base font-semibold">{appName}</span>
               </a>
               <a
               className="flex items-center gap-2"
               href="/member/search">
-                <Search className="h-5 w-5 mr-2" />
+                
                </a>
               
              </div>

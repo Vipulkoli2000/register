@@ -10,7 +10,7 @@ const Header = () => {
       <div className="max-w-[1200px] mx-auto px-4 h-16 flex items-center justify-between">
         {/* Left Section - Logo */}
         <div className="flex items-center">
-          <a href="/" className="text-2xl font-bold text-blue-600 mr-6">BBNG</a>
+          <a href="/" className="text-2xl font-bold text-blue-600 mr-6">CrediSphere</a>
           <div className="hidden md:block">
             <GlobalSearch />
           </div>

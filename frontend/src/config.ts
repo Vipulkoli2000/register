@@ -1,4 +1,4 @@
-export const appName = import.meta.env.VITE_APP_NAME || "BBNG";
+export const appName = import.meta.env.VITE_APP_NAME || "CrediSphere";
 
 // Get the current hostname (for production) or use environment variable
 const getBackendUrl = () => {

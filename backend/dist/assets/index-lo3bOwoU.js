@@ -14647,7 +14647,7 @@ function et(e, n) {
   if (o.error && oE(a.options.throwOnError, [o.error])) throw o.error;
   return { ...o, mutate: l, mutateAsync: o.mutate };
 }
-const Km = "BBNG",
+const Km = "CrediSphere",
   xO = () => "http://15.207.30.113/",
   Wy = xO();
 var rd = {},
@@ -62530,7 +62530,7 @@ const QK = () => {
                 avatar: "https://via.placeholder.com/100",
               },
               time: new Date().toLocaleDateString(),
-              content: "New member joined BBNG Platform",
+              content: "New member joined CrediSphere Platform",
               likes: 5,
               comments: 2,
               shares: 0,

@@ -172,13 +172,13 @@ async function main() {
     prisma.siteSetting.create({
       data: {
         key: 'site_name',
-        value: 'BBNG Network',
+        value: 'CrediSphere Network',
       },
     }),
     prisma.siteSetting.create({
       data: {
         key: 'contact_email',
-        value: 'info@bbng.com',
+        value: 'info@CrediSphere.com',
       },
     }),
     prisma.siteSetting.create({
@@ -223,7 +223,7 @@ async function main() {
   await Promise.all([
     prisma.message.create({
       data: {
-        heading: 'Welcome to BBNG Network',
+        heading: 'Welcome to CrediSphere Network',
         powerteam: 'All',
         message: 'We are excited to have you as a part of our growing business network!',
       },
