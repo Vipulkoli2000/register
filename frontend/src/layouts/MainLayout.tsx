@@ -56,7 +56,7 @@ export default function MainLayout() {
       <AppNavbar userData={userData} isDarkMode={isDarkMode} toggleDarkMode={toggleDarkMode} />
 
       {/* Content Area */}
-      <main className="p-4 pt-24">
+      <main className="p-4 pt-9">
         {/* Add padding to prevent content from being hidden */}
         <Outlet />
       </main>

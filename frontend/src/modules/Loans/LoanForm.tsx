@@ -4,7 +4,9 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import {Separator} from "@/components/ui/separator";
 import { Label } from "@/components/ui/label";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { LoaderCircle, ChevronDown, Check } from "lucide-react";
 import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
 import { Command, CommandInput, CommandList, CommandEmpty, CommandItem } from "@/components/ui/command";
@@ -14,6 +16,7 @@ import { useNavigate } from "react-router-dom";
 import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 import { post, put, get } from "@/services/apiService";
 import Validate from "@/lib/Handlevalidation";
+import PartyForm from "../Parties/PartyForm";
 
 // Define interfaces for API responses
 interface LoanData {
@@ -223,82 +226,203 @@ const LoanForm = ({
 
   // state for combobox popover
   const [openParty, setOpenParty] = useState(false);
+  // state for party selection
+  const [selectedParty, setSelectedParty] = useState("existing");
 
   return (
     <div className={className}>
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-7">
-        {/* Party Field */}
-        <div className="grid gap-2 relative">
-          <Label htmlFor="partyId" className="block mb-0">Party <span className="text-red-500">*</span></Label>
-          <Controller
-            name="partyId"
-            control={control}
-            render={({ field }) => (
-              <Popover open={openParty} onOpenChange={setOpenParty}>
-                <PopoverTrigger asChild>
-                  <Button
-                    variant="outline"
-                    role="combobox"
-                    className="w-full justify-between"
-                    disabled={isFormLoading || isLoadingParties}
-                  >
-                    {field.value
-                      ? partiesData?.parties?.find((p: any) => String(p.id) === field.value)?.partyName
-                      : isLoadingParties
-                      ? "Loading..."
-                      : "Select a party"}
-                    <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="p-0">
-                  <Command>
-                    <CommandInput placeholder="Search party..." />
-                    <CommandEmpty>No party found.</CommandEmpty>
-                    <CommandList>
-                      {partiesData?.parties?.map((party: any) => (
-                        <CommandItem
-                          key={party.id}
-                          value={party.partyName}
-                          onSelect={() => {
-                            field.onChange(String(party.id));
-                            setOpenParty(false);
-                          }}
-                        >
-                          <Check
-                            className={cn(
-                              "mr-2 h-4 w-4",
-                              field.value === String(party.id) ? "opacity-100" : "opacity-0"
-                            )}
-                          />
-                          {party.partyName}
-                        </CommandItem>
-                      ))}
-                    </CommandList>
-                  </Command>
-                </PopoverContent>
-              </Popover>
+        {/* Radio buttons for party selection */}
+        <div className="grid gap-4 mb-6">
+          <Label>Party Selection <span className="text-red-500">*</span></Label>
+          <RadioGroup
+            defaultValue="existing"
+            onValueChange={(value) => setSelectedParty(value)}
+            className="flex gap-6"
+          >
+            <div className="flex items-center space-x-2">
+              <RadioGroupItem value="existing" id="existing" />
+              <Label htmlFor="existing">Existing Party</Label>
+            </div>
+            <div className="flex items-center space-x-2">
+              <RadioGroupItem value="create" id="create" />
+              <Label htmlFor="create">Create Party</Label>
+            </div>
+          </RadioGroup>
+        </div>
+
+        {/* Conditional rendering based on radio selection */}
+        {selectedParty === "existing" ? (
+          <div className="grid gap-2 relative mb-6">
+            <Label htmlFor="partyId" className="block mb-2">Select Party <span className="text-red-500">*</span></Label>
+            <Controller
+              name="partyId"
+              control={control}
+              render={({ field }) => (
+                <Popover open={openParty} onOpenChange={setOpenParty}>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      role="combobox"
+                      className="w-full justify-between"
+                      disabled={isFormLoading || isLoadingParties}
+                    >
+                      {field.value
+                        ? partiesData?.parties?.find((p: any) => String(p.id) === field.value)?.partyName
+                        : isLoadingParties
+                        ? "Loading..."
+                        : "Select a party"}
+                      <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="p-0 w-[90vw] sm:w-[440px]">
+                    <Command>
+                      <CommandInput placeholder="Search party..." />
+                      <CommandEmpty>No party found.</CommandEmpty>
+                      <CommandList >
+                        {partiesData?.parties?.map((party: any) => (
+                          <CommandItem
+                            key={party.id}
+                            value={party.partyName}
+                            onSelect={() => {
+                              field.onChange(String(party.id));
+                              setOpenParty(false);
+                            }}
+                          >
+                            <Check
+                              className={cn(
+                                "mr-2 h-4 w-4",
+                                field.value === String(party.id) ? "opacity-100" : "opacity-0"
+                              )}
+                            />
+                            {party.partyName}
+                          </CommandItem>
+                        ))}
+                      </CommandList>
+                    </Command>
+                  </PopoverContent>
+                </Popover>
+              )}
+            />
+            {errors.partyId && (
+              <span className="block text-xs text-destructive">
+                {errors.partyId.message}
+              </span>
             )}
-          />
-          {errors.partyId && (
-            <span className=" block text-xs text-destructive">
-              {errors.partyId.message}
-            </span>
-          )}
-      <div className="grid grid-cols-2 gap-2 relative">
-        <div>
-          <Label htmlFor="loanDate" className="block mb-2">Loan Date <span className="text-red-500">*</span></Label>
+          </div>
+        ) : (
+          <div className=" ">
+             <div className="grid gap-2 relative">
+          <Label htmlFor="partyName" className="block mb-2">Party Name <span className="text-red-500">*</span></Label>
           <Input
-          type="date"
-            id="loanDate"
-            placeholder="Enter loan date"
-            {...register("loanDate")}
+            id="partyName"
+            placeholder="Enter party name"
+            {...register("partyName")}
             disabled={isFormLoading}
           />
-          {errors.loanDate && (
+          {errors.partyName && (
             <span className="mt-1 block text-xs text-destructive">
-              {errors.loanDate.message}
+              {errors.partyName.message}
             </span>
           )}
+            <div className="grid grid-cols-2 gap-4">
+            <div>
+            <Label htmlFor="address" className="block mb-2">Address <span className="text-red-500">*</span></Label>
+            <Input
+              id="address"
+              placeholder="Enter address"
+              {...register("address")}
+              disabled={isFormLoading}
+            />
+            {errors.address && (
+              <span className="mt-1 block text-xs text-destructive">
+                {errors.address.message}
+              </span>
+            )}
+
+            </div>
+              <div>
+            {/* Mobile 1 Field */}
+            <Label htmlFor="mobile1" className="block mb-2">Mobile 1 <span className="text-red-500">*</span></Label>
+            <Input
+              id="mobile1"
+              placeholder="Enter mobile number"
+              {...register("mobile1")}
+              disabled={isFormLoading}
+              maxLength={10}
+type="number"
+            />
+            {errors.mobile1 && (
+              <span className="mt-1 block text-xs text-destructive">
+                {errors.mobile1.message}
+              </span>
+            )}
+            </div>
+           
+            </div>
+
+        
+
+            <div className="grid grid-cols-2 gap-4">
+            <div>
+    {/* Reference Field */}
+    <Label htmlFor="reference" className="block mb-2">Reference <span className="text-red-500">*</span></Label>
+            <Input
+              id="reference"
+              placeholder="Enter reference"
+              {...register("reference")}
+              disabled={isFormLoading}
+            />
+            {errors.reference && (
+              <span className="mt-1 block text-xs text-destructive">
+                {errors.reference.message}
+              </span>
+            )}
+
+              </div>
+              <div>
+                {/* Reference Mobile 1 Field */}
+                <Label htmlFor="referenceMobile1" className="block mb-2">Reference Mobile 1 <span className="text-red-500">*</span></Label>
+                <Input
+                  id="referenceMobile1"
+                  placeholder="Enter reference mobile number"
+                  {...register("referenceMobile1")}
+                  disabled={isFormLoading}
+                  maxLength={10}
+                  type="number"
+                />
+                {errors.referenceMobile1 && (
+                  <span className="mt-1 block text-xs text-destructive">
+                    {errors.referenceMobile1.message}
+                  </span>
+                )}
+              </div>
+            
+              
+            </div>
+        </div>
+        <Separator />
+       </div>
+               
+        )}
+
+        
+        {/* Loan Date and Amount */}
+        <div className="grid grid-cols-2 gap-4 mb-6">
+          <div>
+            <Label htmlFor="loanDate" className="block mb-2">Loan Date <span className="text-red-500">*</span></Label>
+            <Input
+              type="date"
+              id="loanDate"
+              placeholder="Enter loan date"
+              {...register("loanDate")}
+              disabled={isFormLoading}
+            />
+            {errors.loanDate && (
+              <span className="mt-1 block text-xs text-destructive">
+                {errors.loanDate.message}
+              </span>
+            )}
           </div>
           <div>
             <Label htmlFor="loanAmount" className="block mb-2">Loan Amount <span className="text-red-500">*</span></Label>
@@ -320,57 +444,57 @@ const LoanForm = ({
                 {errors.loanAmount.message}
               </span>
             )}
-            </div>
-            </div>
-            <div>
-            <Label htmlFor="interest" className="block mb-2">Interest (%)<span className="text-red-500">*</span></Label>
-            <Input
-            type="number"
-              id="interest"
-              placeholder="Enter interest"
-              {...register("interest")}
-              disabled={isFormLoading}
-            />
-            {errors.interest && (
-              <span className="mt-1 block text-xs text-destructive">
-                {errors.interest.message}
-              </span>
-            )}
-            </div>
-      <div className="grid grid-cols-2 gap-2 relative">
-        <div>
-          <Label htmlFor="balanceAmount" className="block mb-2">
-            Balance Amount <span className="text-red-500">*</span>
-           
-          </Label>
-          <div className="relative">
-            <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-500">
-              ₹
-            </span>
-            <Input
-              type="number"
-              id="balanceAmount"
-              placeholder="Enter balance amount"
-              {...register("balanceAmount")}
-              disabled={isFormLoading}
-              className={`pl-7 ${mode === "create" ? "bg-gray-50" : ""}`}
-              disabled
-            />
           </div>
-          {errors.balanceAmount && (
+        </div>
+
+        {/* Interest */}
+        <div className="mb-6">
+          <Label htmlFor="interest" className="block mb-2">Interest (%) <span className="text-red-500">*</span></Label>
+          <Input
+            type="number"
+            id="interest"
+            placeholder="Enter interest"
+            {...register("interest")}
+            disabled={isFormLoading}
+          />
+          {errors.interest && (
             <span className="mt-1 block text-xs text-destructive">
-              {errors.balanceAmount.message}
+              {errors.interest.message}
             </span>
           )}
+        </div>
+        {/* Balance Amount and Interest */}
+        <div className="grid grid-cols-2 gap-4 mb-6">
+          <div>
+            <Label htmlFor="balanceAmount" className="block mb-2">
+              Balance Amount <span className="text-red-500">*</span>
+            </Label>
+            <div className="relative">
+              <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-500">
+                ₹
+              </span>
+              <Input
+                type="number"
+                id="balanceAmount"
+                placeholder="Enter balance amount"
+                {...register("balanceAmount")}
+                disabled
+                className={`pl-7 ${mode === "create" ? "bg-gray-50" : ""}`}
+              />
+            </div>
+            {errors.balanceAmount && (
+              <span className="mt-1 block text-xs text-destructive">
+                {errors.balanceAmount.message}
+              </span>
+            )}
           </div>
           <div>
             <Label htmlFor="balanceInterest" className="block mb-2">Balance Interest</Label>
             <Input
-            type="number"
+              type="number"
               id="balanceInterest"
               placeholder="Enter balance interest"
               {...register("balanceInterest")}
-              disabled={isFormLoading}
               disabled
             />
             {errors.balanceInterest && (
@@ -378,12 +502,8 @@ const LoanForm = ({
                 {errors.balanceInterest.message}
               </span>
             )}
-            </div>
-            </div>
-           
-            
+          </div>
         </div>
-
         {/* Form Actions */}
         <div className="flex justify-end gap-2">
           <Button

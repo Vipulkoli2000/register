@@ -1,7 +1,8 @@
 import { Link, useNavigate } from "react-router-dom";
-import { LogOut } from "lucide-react";
+import { LogOut, Menu } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { ThemeToggle } from "@/components/common/theme-toggle";
 import {
   DropdownMenu,
@@ -47,16 +48,16 @@ export const AppNavbar = ({ userData, isDarkMode, toggleDarkMode }: AppNavbarPro
   };
 
   return (
-    <header className="bg-card/75 backdrop-blur-lg sticky top-4 mx-auto z-50 flex h-12 w-[calc(100%-29rem)] shrink-0 items-center justify-between rounded-xl border shadow-lg px-4">
-      <div className="flex items-center gap-6">
+    <header className="bg-card/75 backdrop-blur-lg sticky top-4 z-50 flex h-12 shrink-0 items-center justify-between rounded-xl border shadow-lg px-4 mx-2 md:mx-auto w-[calc(100%-1rem)] md:w-[calc(100%-19rem)]">
+      <div className="flex items-center gap-4">
         {/* Logo */}
         <Link to="/dashboard" className="flex items-center gap-2">
           <img src="/credisphere-logo.svg" alt="CrediSphere Logo" className="h-8 w-8" />
-          <span className="font-bold text-lg">CrediSphere</span>
+          <span className="font-bold text-lg hidden md:block lg:block">CrediSphere</span>
         </Link>
         
         {/* Navigation */}
-        <NavigationMenu>
+        <NavigationMenu className="hidden md:flex">
           <NavigationMenuList>
             
          
@@ -81,9 +82,25 @@ export const AppNavbar = ({ userData, isDarkMode, toggleDarkMode }: AppNavbarPro
       </div>
 
       {/* Right side controls */}
-      <div className="flex items-center gap-4">
+      <div className="flex items-center gap-2">
         
        
+                <div className="md:hidden">
+          <Sheet>
+            <SheetTrigger asChild>
+              <Button variant="ghost" size="icon">
+                <Menu className="h-6 w-6" />
+              </Button>
+            </SheetTrigger>
+            <SheetContent side="right" className="w-[300px] sm:w-[400px]">
+              <nav className="flex flex-col gap-y-4 p-4 pt-10">
+                <Link to="/parties" className="text-lg font-medium p-2 hover:bg-muted rounded-md">Party</Link>
+                <Link to="/loans" className="text-lg font-medium p-2 hover:bg-muted rounded-md">Loan</Link>
+              </nav>
+            </SheetContent>
+          </Sheet>
+        </div>
+        
         <ThemeToggle isDarkMode={isDarkMode} toggleDarkMode={toggleDarkMode} />
         
         <DropdownMenu>
