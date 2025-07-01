@@ -5,7 +5,7 @@ import {
   BrowserRouter as Router,
   Routes,
   Route,
-  useParams,
+
 } from "react-router-dom";
 
 import AuthLayout from "./layouts/AuthLayout";
@@ -25,12 +25,16 @@ import Registerformat from "./modules/Register/register";
 import { Toaster } from "sonner";
 import "./App.css";
 const App = () => {
+    // Set to false to disable the background animation
+  const showAnimation = true;
+
   useEffect(() => {
     document.title = appName; // Set the document title
   }, []);
 
   return (
     <>
+      {showAnimation && <div className="background-blur"></div>}
       <Toaster richColors position="top-center" />
       <Router>
         <Routes>

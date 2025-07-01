@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import { format, addMonths } from "date-fns";
+import { format, addMonths, parseISO } from "date-fns";
 import { formatCurrency } from "@/lib/formatter";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
@@ -21,7 +21,6 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Card, CardContent, CardDescription, CardHeader } from "@/components/ui/card";
-import { Separator } from "@/components/ui/separator";
 import {
   LoaderCircle,
   PenSquare,
@@ -44,7 +43,7 @@ import {
 import CustomPagination from "@/components/common/custom-pagination";
 import { get, del } from "@/services/apiService";
 // Import components from current directory
-import CreateLoan from "./CreateLOan";
+import CreateLoan from "./CreateLoan";
 import EditLoan from "./EditLoan";
 
 interface Loan {
@@ -57,6 +56,8 @@ interface Loan {
   partyName: string;
   party?: {
     partyName: string;
+    mobile1: string;
+    address: string;
   };
 }
 
@@ -70,15 +71,24 @@ interface Loan {
   partyName: string;
   party?: {
     partyName: string;
+    mobile1: string;
+    address: string;
   };
 }
 
 interface TableRowData {
   id: number;
+  loanDate: string;
   partyName: string;
+  party?: {
+    partyName: string;
+    mobile1: string;
+    address: string;
+  };
   monthlyAmounts: Record<string, number>;
   totalLoanAmount: number;
   totalBalanceInterest: number;
+  interest: number;
 }
 
 interface LoansResponse {
@@ -169,7 +179,7 @@ const LoanList = () => {
       return { tableData: [], months: nextMonths };
     }
 
-    const loanMonths = [...new Set(data.loans.map(loan => format(new Date(loan.loanDate), "MMMM yyyy")))];
+    const loanMonths = [...new Set(data.loans.map(loan => format(parseISO(loan.loanDate), "MMMM yyyy")))];
     loanMonths.sort((a, b) => new Date(a).getTime() - new Date(b).getTime());
     
     const lastMonthDate = new Date(loanMonths[loanMonths.length - 1]);
@@ -183,7 +193,7 @@ const LoanList = () => {
 
     const tableData = data.loans.reduce((acc, loan) => {
       const existingEntry = acc.find(entry => entry.partyName === (loan.party?.partyName || loan.partyName));
-      const month = format(new Date(loan.loanDate), "MMMM yyyy");
+      const month = format(parseISO(loan.loanDate), "MMMM yyyy");
 
       if (existingEntry) {
         existingEntry.monthlyAmounts[month] = (existingEntry.monthlyAmounts[month] || 0) + loan.loanAmount;
@@ -192,10 +202,13 @@ const LoanList = () => {
       } else {
         acc.push({
           id: loan.id,
+          loanDate: loan.loanDate,
           partyName: loan.party?.partyName || loan.partyName,
+          party: loan.party,
           monthlyAmounts: { [month]: loan.loanAmount },
           totalLoanAmount: loan.loanAmount,
           totalBalanceInterest: loan.balanceInterest,
+          interest: loan.interest,
         });
       }
       return acc;
@@ -262,10 +275,10 @@ const LoanList = () => {
             <Table>
               <TableHeader>
                 <TableRow className="bg-muted/50 hover:bg-muted/50">
-                  <TableHead>Party Name</TableHead>
-                  <TableHead>Total Loan</TableHead>
-                  <TableHead>Balance Interest</TableHead>
-                  {months.map((month: string) => (
+                <TableHead>Loan Date</TableHead>
+                  <TableHead>Party</TableHead>
+                  <TableHead>Loan(Interest)</TableHead>
+                   {months.map((month: string) => (
                     <TableHead key={month}>{month}</TableHead>
                   ))}
                   <TableHead className="text-right">Actions</TableHead>
@@ -287,10 +300,23 @@ const LoanList = () => {
                 ) : (
                   tableData.map(row => (
                     <TableRow key={row.id}>
-                      <TableCell>{row.partyName}</TableCell>
-                      <TableCell>{formatCurrency(row.totalLoanAmount)}</TableCell>
-                      <TableCell>{formatCurrency(row.totalBalanceInterest)}</TableCell>
-                      {months.map(month => (
+                      <TableCell>{format(parseISO(row.loanDate), "dd/MM/yyyy")}</TableCell>
+                      <TableCell>
+                        <div className="flex flex-col">
+                          <span className="font-medium">{row.partyName}</span>
+                          <div className="flex flex-col">
+                            <span className="text-sm text-muted-foreground">{row.party?.mobile1}</span>
+                            <span className="text-sm text-muted-foreground">{row.party?.address}</span>
+                          </div>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        {formatCurrency(row.totalLoanAmount)}{" "}
+                        <span className="text-sm text-muted-foreground">
+                          ({row.interest}%)
+                        </span>
+                      </TableCell>
+                       {months.map(month => (
                         <TableCell key={month}>
                           {row.monthlyAmounts[month] ? formatCurrency(row.monthlyAmounts[month]) : "-"}
                         </TableCell>

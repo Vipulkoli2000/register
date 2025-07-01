@@ -62,11 +62,7 @@ const getLoans = asyncHandler(async (req, res) => {
       take: limit,
       orderBy: { [sortBy]: sortOrder },
       include: {
-        party: {
-          select: {
-            partyName: true,
-          },
-        },
+        party: true,
       },
     }),
     prisma.loan.count({ where }),
@@ -84,11 +80,7 @@ const getLoan = asyncHandler(async (req, res) => {
   const loan = await prisma.loan.findUnique({
     where: { id },
     include: {
-      party: {
-        select: {
-          partyName: true,
-        },
-      },
+      party: true,
     },
   });
   if (!loan) throw createError(404, "Loan not found");

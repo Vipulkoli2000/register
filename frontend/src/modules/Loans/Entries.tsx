@@ -61,15 +61,6 @@ const Entries = () => {
 
   const queryClient = useQueryClient();
 
-  // Disable body scroll when this page is mounted
-  React.useEffect(() => {
-    const originalOverflow = document.body.style.overflow;
-    document.body.style.overflow = 'hidden';
-    return () => {
-      document.body.style.overflow = originalOverflow;
-    };
-  }, []);
-
   // Fetch entries
   const {
     data,

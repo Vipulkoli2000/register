@@ -5,7 +5,6 @@
 import { Outlet } from "react-router-dom";
 import { useState, useEffect } from "react";
 
-import * as React from "react";
 import { AppNavbar } from "@/components/common/app-navbar";
 
 
@@ -52,7 +51,7 @@ export default function MainLayout() {
   };
 
   return (
-    <div className="min-h-screen w-full bg-muted/40">
+    <div className="min-h-screen w-full">
       <AppNavbar userData={userData} isDarkMode={isDarkMode} toggleDarkMode={toggleDarkMode} />
 
       {/* Content Area */}
