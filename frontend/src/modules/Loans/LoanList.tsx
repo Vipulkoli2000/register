@@ -1,7 +1,7 @@
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import { format } from "date-fns";
-import { formatCurrency, formatPercentage } from "@/lib/formatter";
+import { format, addMonths } from "date-fns";
+import { formatCurrency } from "@/lib/formatter";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -27,8 +27,6 @@ import {
   PenSquare,
   Search,
   Trash2,
-  ChevronUp,
-  ChevronDown,
   PlusCircle,
   List
 } from "lucide-react";
@@ -49,13 +47,53 @@ import { get, del } from "@/services/apiService";
 import CreateLoan from "./CreateLOan";
 import EditLoan from "./EditLoan";
 
+interface Loan {
+  id: number;
+  loanDate: string;
+  loanAmount: number;
+  balanceAmount: number;
+  interest: number;
+  balanceInterest: number;
+  partyName: string;
+  party?: {
+    partyName: string;
+  };
+}
+
+interface Loan {
+  id: number;
+  loanDate: string;
+  loanAmount: number;
+  balanceAmount: number;
+  interest: number;
+  balanceInterest: number;
+  partyName: string;
+  party?: {
+    partyName: string;
+  };
+}
+
+interface TableRowData {
+  id: number;
+  partyName: string;
+  monthlyAmounts: Record<string, number>;
+  totalLoanAmount: number;
+  totalBalanceInterest: number;
+}
+
+interface LoansResponse {
+  loans: Loan[];
+  totalPages: number;
+  totalLoans: number;
+}
+
 const LoanList = () => {
   const navigate = useNavigate();
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState("");
   const [limit, setLimit] = useState(10);
-  const [sortBy, setSortBy] = useState("loanDate");
-  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
+  const [sortBy] = useState("loanDate");
+  const [sortOrder] = useState<"asc" | "desc">("asc");
   const [editLoanId, setEditLoanId] = useState<string | null>(null);
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
@@ -67,7 +105,7 @@ const LoanList = () => {
     isLoading,
     isError,
     error,
-  } = useQuery({
+  } = useQuery<LoansResponse>({
     queryKey: ["loans", page, limit, search, sortBy, sortOrder],
     queryFn: () => get("/loans", { page, limit, search, sortBy, sortOrder }),
   });
@@ -90,16 +128,7 @@ const LoanList = () => {
     setPage(1); // Reset to first page when search changes
   };
 
-  // Handle sort
-  const handleSort = (column: string) => {
-    if (sortBy === column) {
-      setSortOrder(sortOrder === "asc" ? "desc" : "asc");
-    } else {
-      setSortBy(column);
-      setSortOrder("asc");
-    }
-    setPage(1); // Reset to first page when sort changes
-  };
+
 
   // Handle pagination
   const handlePageChange = (newPage: number) => {
@@ -129,6 +158,53 @@ const LoanList = () => {
     setIsEditDialogOpen(false);
     setEditLoanId(null);
   };
+
+  const { tableData, months } = useMemo(() => {
+    if (!data?.loans || data.loans.length === 0) {
+      const today = new Date();
+      const nextMonths = [];
+      for (let i = 0; i <= 3; i++) {
+        nextMonths.push(format(addMonths(today, i), "MMMM yyyy"));
+      }
+      return { tableData: [], months: nextMonths };
+    }
+
+    const loanMonths = [...new Set(data.loans.map(loan => format(new Date(loan.loanDate), "MMMM yyyy")))];
+    loanMonths.sort((a, b) => new Date(a).getTime() - new Date(b).getTime());
+    
+    const lastMonthDate = new Date(loanMonths[loanMonths.length - 1]);
+    const allMonths = [...loanMonths];
+    for (let i = 1; i <= 3; i++) {
+      const nextMonth = format(addMonths(lastMonthDate, i), "MMMM yyyy");
+      if (!allMonths.includes(nextMonth)) {
+        allMonths.push(nextMonth);
+      }
+    }
+
+    const tableData = data.loans.reduce((acc, loan) => {
+      const existingEntry = acc.find(entry => entry.partyName === (loan.party?.partyName || loan.partyName));
+      const month = format(new Date(loan.loanDate), "MMMM yyyy");
+
+      if (existingEntry) {
+        existingEntry.monthlyAmounts[month] = (existingEntry.monthlyAmounts[month] || 0) + loan.loanAmount;
+        existingEntry.totalLoanAmount += loan.loanAmount;
+        existingEntry.totalBalanceInterest += loan.balanceInterest;
+      } else {
+        acc.push({
+          id: loan.id,
+          partyName: loan.party?.partyName || loan.partyName,
+          monthlyAmounts: { [month]: loan.loanAmount },
+          totalLoanAmount: loan.loanAmount,
+          totalBalanceInterest: loan.balanceInterest,
+        });
+      }
+      return acc;
+    }, [] as TableRowData[]);
+
+    return { tableData, months: allMonths };
+  }, [data]);
+
+
 
   // Handle error loan
   if (isError) {
@@ -186,67 +262,58 @@ const LoanList = () => {
             <Table>
               <TableHeader>
                 <TableRow className="bg-muted/50 hover:bg-muted/50">
-               
-                  <TableHead>Party</TableHead>
-                  <TableHead className="w-auto cursor-pointer" onClick={() => handleSort("loanDate")}>
-                    Loan Date
-                    {sortBy === "loanDate" && (
-                      <span className="ml-2 inline-block">
-                        {sortOrder === "asc" ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
-                      </span>
-                    )}
-                  </TableHead>
-                  <TableHead>Loan Amount</TableHead>
-                  <TableHead>Balance Amount</TableHead>
-                  <TableHead>Interest</TableHead>
+                  <TableHead>Party Name</TableHead>
+                  <TableHead>Total Loan</TableHead>
                   <TableHead>Balance Interest</TableHead>
+                  {months.map((month: string) => (
+                    <TableHead key={month}>{month}</TableHead>
+                  ))}
                   <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {isLoading ? (
                   <TableRow>
-                    <TableCell colSpan={5} className="h-24 text-center">
-                      <LoaderCircle className="h-6 w-6 animate-spin mx-auto" />
-                      <p className="mt-2">Loading loans...</p>
+                    <TableCell colSpan={months.length + 4} className="text-center">
+                      <LoaderCircle className="h-8 w-8 animate-spin inline-block" />
                     </TableCell>
                   </TableRow>
-                ) : data?.loans?.length === 0 ? (
+                ) : tableData.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={5} className="h-24 text-center">
+                    <TableCell colSpan={months.length + 4} className="text-center">
                       No loans found.
                     </TableCell>
                   </TableRow>
                 ) : (
-                  data?.loans?.map((loan: any) => (
-                    <TableRow key={loan.id}>
-                      <TableCell>{loan.party?.partyName || loan.partyName}</TableCell>
-                       <TableCell>{format(new Date(loan.loanDate), "dd-MM-yyyy")}</TableCell>
-                      <TableCell>{formatCurrency(loan.loanAmount)}</TableCell>
-                      <TableCell>{formatCurrency(loan.balanceAmount)}</TableCell>
-                      <TableCell>{formatPercentage(loan.interest)}</TableCell>
-                      <TableCell>{formatCurrency(loan.balanceInterest)}</TableCell>
+                  tableData.map(row => (
+                    <TableRow key={row.id}>
+                      <TableCell>{row.partyName}</TableCell>
+                      <TableCell>{formatCurrency(row.totalLoanAmount)}</TableCell>
+                      <TableCell>{formatCurrency(row.totalBalanceInterest)}</TableCell>
+                      {months.map(month => (
+                        <TableCell key={month}>
+                          {row.monthlyAmounts[month] ? formatCurrency(row.monthlyAmounts[month]) : "-"}
+                        </TableCell>
+                      ))}
                       <TableCell className="text-right">
                         <div className="flex justify-end gap-2">
-                              {/* Entries Button */}
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => navigate(`/entries?loanId=${loan.id}`)}
-                                title="Entries"
-                              >
-                                <List className="h-4 w-4" />
-                                <span className="sr-only">Entries</span>
-                              </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => navigate(`/entries?loanId=${row.id}`)}
+                            title="Entries"
+                          >
+                            <List className="h-4 w-4" />
+                            <span className="sr-only">Entries</span>
+                          </Button>
                           <Button
                             variant="ghost"
                             size="icon"
-                            onClick={() => handleEdit(loan.id.toString())}
+                            onClick={() => handleEdit(row.id.toString())}
                           >
                             <PenSquare className="h-4 w-4" />
                             <span className="sr-only">Edit</span>
                           </Button>
-                          
                           <AlertDialog>
                             <AlertDialogTrigger asChild>
                               <Button variant="ghost" size="icon">
@@ -264,7 +331,7 @@ const LoanList = () => {
                               <AlertDialogFooter>
                                 <AlertDialogCancel>Cancel</AlertDialogCancel>
                                 <AlertDialogAction 
-                                  onClick={() => deleteMutation.mutate(loan.id)}
+                                  onClick={() => deleteMutation.mutate(row.id)}
                                   className="bg-red-500 hover:bg-red-600"
                                 >
                                   {deleteMutation.isPending ? (
@@ -309,10 +376,7 @@ const LoanList = () => {
               <CustomPagination
                 currentPage={page}
                 totalPages={data.totalPages}
-                totalRecords={data.totalLoans}
-                recordsPerPage={limit}
                 onPageChange={handlePageChange}
-                onRecordsPerPageChange={handleRecordsPerPageChange}
               />
               
               <div className="text-sm">
