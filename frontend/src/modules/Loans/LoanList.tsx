@@ -234,7 +234,7 @@ const LoanList = () => {
       
         <CardContent>
           {/* Toolbar */}
-          <div className="flex flex-wrap items-center gap-4 mb-4 ">
+          <div className="flex flex-col sm:flex-row sm:items-center gap-4 mb-4">
             {/* Search Input */}
             <div className="relative flex-1 min-w-[250px]">
               <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
@@ -258,7 +258,7 @@ const LoanList = () => {
 
  
           {/* Loans Table */}
-          <div className="rounded-md border overflow-hidden">
+          <div className="rounded-md border overflow-x-auto">
             <Table>
               <TableHeader>
                 <TableRow className="bg-muted/50 hover:bg-muted/50">
@@ -357,7 +357,7 @@ const LoanList = () => {
 
           {/* Pagination */}
           {data && data.totalPages > 1 && (
-            <div className="flex justify-between items-center mt-4">
+            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mt-4">
               <div className="flex items-center gap-2">
                 <span className="text-sm">Show</span>
                 <select

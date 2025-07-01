@@ -34,8 +34,8 @@ interface LoanData {
 }
 
 const loanFormSchema = z.object({
-  partyId: z.string()
-    .nonempty("Party is required"),
+  partyId: z.any()
+    .optional(),
   loanDate: z.string()
     .nonempty("Loan date is required"),
     loanAmount: z.string()
@@ -45,6 +45,12 @@ const loanFormSchema = z.object({
     interest: z.string()
     .nonempty("Interest is required"),
     balanceInterest: z.string().optional(),
+    // Party fields for create party option
+    partyName: z.string().optional(),
+    address: z.string().optional(),
+    mobile1: z.string().optional(),
+    reference: z.string().optional(),
+    referenceMobile1: z.string().optional(),
 });
 
 type LoanFormInputs = z.infer<typeof loanFormSchema>;
@@ -83,6 +89,12 @@ const LoanForm = ({
       balanceAmount: "",
       interest: "",
       balanceInterest: "0",
+      // Party fields
+      partyName: "",
+      address: "",
+      mobile1: "",
+      reference: "",
+      referenceMobile1: "",
     },
   });
 
@@ -142,6 +154,28 @@ const LoanForm = ({
     staleTime: 1000 * 60 * 10,
   });
 
+  // Mutation for creating a party
+  const createPartyMutation = useMutation<any, any, any>({
+    mutationFn: (data: any) => {
+      return post("/parties", data);
+    },
+    onSuccess: (createdParty) => {
+      toast.success("Party created successfully");
+      queryClient.invalidateQueries({ queryKey: ["parties"] });
+      return createdParty;
+    },
+    onError: (error: any) => {
+      Validate(error, setError);
+      if (error.errors?.message) {
+        toast.error(error.errors.message);
+      } else if (error.message) {
+        toast.error(error.message);
+      } else {
+        toast.error("Failed to create party");
+      }
+    },
+  });
+
   // Mutation for creating a loan
   const createLoanMutation = useMutation<any, any, any>({
     mutationFn: (data: LoanFormInputs) => {
@@ -196,20 +230,62 @@ const LoanForm = ({
   });
 
   // Handle form submission
-  const onSubmit: SubmitHandler<LoanFormInputs> = (data) => {
-    // Convert string inputs to numbers to match backend expectations
-    const payload = {
-      ...data,
-      partyId: parseInt(data.partyId, 10),
-      loanAmount: Number(data.loanAmount),
-      balanceAmount: Number(data.balanceAmount),
-      interest: Number(data.interest),
-      balanceInterest: Number(data.balanceInterest),
-    };
-    if (mode === "create") {
-      createLoanMutation.mutate(payload);
+  const onSubmit: SubmitHandler<LoanFormInputs> = async (data) => {
+    if (mode === "create" && selectedParty === "create") {
+      // Validate party fields when creating new party
+      if (!data.partyName || !data.address || !data.mobile1 || !data.reference || !data.referenceMobile1) {
+        if (!data.partyName) setError("partyName", { message: "Party name is required" });
+        if (!data.address) setError("address", { message: "Address is required" });
+        if (!data.mobile1) setError("mobile1", { message: "Mobile number is required" });
+        if (!data.reference) setError("reference", { message: "Reference is required" });
+        if (!data.referenceMobile1) setError("referenceMobile1", { message: "Reference mobile number is required" });
+        return;
+      }
+
+      // Create party first
+      const partyData = {
+        partyName: data.partyName,
+        address: data.address,
+        mobile1: data.mobile1,
+        mobile2: "", // Optional field
+        reference: data.reference,
+        referenceMobile1: data.referenceMobile1,
+        referenceMobile2: "", // Optional field
+      };
+
+      try {
+        const createdParty = await createPartyMutation.mutateAsync(partyData);
+        
+        // Create loan with the newly created party ID
+        const loanPayload = {
+          partyId: createdParty.id,
+          loanDate: data.loanDate,
+          loanAmount: Number(data.loanAmount),
+          balanceAmount: Number(data.balanceAmount),
+          interest: Number(data.interest),
+          balanceInterest: Number(data.balanceInterest || "0"),
+        };
+        
+        createLoanMutation.mutate(loanPayload);
+      } catch (error) {
+        // Error handling is already done in createPartyMutation onError
+        console.error("Failed to create party:", error);
+      }
     } else {
-      updateLoanMutation.mutate(payload);
+      // Convert string inputs to numbers to match backend expectations
+      const payload = {
+        ...data,
+        partyId: parseInt(data.partyId, 10),
+        loanAmount: Number(data.loanAmount),
+        balanceAmount: Number(data.balanceAmount),
+        interest: Number(data.interest),
+        balanceInterest: Number(data.balanceInterest || "0"),
+      };
+      if (mode === "create") {
+        createLoanMutation.mutate(payload);
+      } else {
+        updateLoanMutation.mutate(payload);
+      }
     }
   };
 
@@ -222,7 +298,7 @@ const LoanForm = ({
   };
 
   // Combined loading loan from fetch and mutations
-  const isFormLoading = isFetchingLoan || createLoanMutation.isPending || updateLoanMutation.isPending;
+  const isFormLoading = isFetchingLoan || createLoanMutation.isPending || updateLoanMutation.isPending || createPartyMutation.isPending;
 
   // state for combobox popover
   const [openParty, setOpenParty] = useState(false);
