@@ -79,19 +79,21 @@ const LoanForm = ({
       loanAmount: "",
       balanceAmount: "",
       interest: "",
-      balanceInterest: "",
+      balanceInterest: "0",
     },
   });
 
   // Watch loan amount to auto-populate balance amount
   const loanAmount = watch("loanAmount");
-  
+   
   // Auto-populate balance amount when loan amount changes (only in create mode)
   useEffect(() => {
     if (mode === "create" && loanAmount) {
       setValue("balanceAmount", loanAmount);
     }
   }, [loanAmount, setValue, mode]);
+
+ 
 
   // Query for fetching loan data in edit mode
   const { isLoading: isFetchingLoan } = useQuery({
@@ -119,7 +121,6 @@ const LoanForm = ({
         setValue("loanAmount", data.loanAmount.toString());
         setValue("balanceAmount", data.balanceAmount.toString());
         setValue("interest", data.interest.toString());
-        setValue("balanceInterest", data.balanceInterest.toString());
       }).catch((error) => {
         toast.error(error.message || "Failed to fetch loan details");
         if (onSuccess) {
@@ -353,6 +354,7 @@ const LoanForm = ({
               {...register("balanceAmount")}
               disabled={isFormLoading}
               className={`pl-7 ${mode === "create" ? "bg-gray-50" : ""}`}
+              disabled
             />
           </div>
           {errors.balanceAmount && (
@@ -369,6 +371,7 @@ const LoanForm = ({
               placeholder="Enter balance interest"
               {...register("balanceInterest")}
               disabled={isFormLoading}
+              disabled
             />
             {errors.balanceInterest && (
               <span className="mt-1 block text-xs text-destructive">

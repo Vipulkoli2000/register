@@ -297,6 +297,7 @@ const CreateEntryForm = ({
         balanceInterest: response.balanceInterest.toString(),
         interestPercentage: response.interest.toString(),
         interestAmount: response.calculatedInterestAmount.toString(),
+      entryDate: response.nextEntryDate ? response.nextEntryDate.split('T')[0] : prev.entryDate,
         totalPendingInterest: response.totalPendingInterest.toString(),
       }));
     } catch (error) {
@@ -372,7 +373,7 @@ const CreateEntryForm = ({
       <div className="grid grid-cols-1 gap-4">
         <div>
           <label className="block text-sm font-medium mb-1" htmlFor="entryDate">
-            Entry Date <span className="text-red-500">*</span>
+            Next Entry Date <span className="text-red-500">*</span>
           </label>
           <Input
             id="entryDate"
@@ -381,6 +382,7 @@ const CreateEntryForm = ({
             value={form.entryDate}
             onChange={handleChange}
             required
+            disabled
           />
         </div>
       </div>
@@ -406,23 +408,7 @@ const CreateEntryForm = ({
                 />
               </div>
             </div>
-            <div>
-              <label className="block text-sm font-medium mb-1" htmlFor="balanceInterest">
-                Current Balance Interest
-              </label>
-              <div className="relative">
-                <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-500">₹</span>
-                <Input
-                  id="balanceInterest"
-                  name="balanceInterest"
-                  type="number"
-                  step="0.01"
-                  value={form.balanceInterest}
-                  disabled
-                  className="pl-7 bg-gray-100 cursor-not-allowed"
-                />
-              </div>
-            </div>
+         
             <div>
               <label className="block text-sm font-medium mb-1" htmlFor="interestPercentage">
                 Interest Rate %
@@ -438,8 +424,25 @@ const CreateEntryForm = ({
               />
             </div>
             <div>
+              <label className="block text-sm font-medium mb-1" htmlFor="balanceInterest">
+                 Balance Interest
+              </label>
+              <div className="relative">
+                <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-500">₹</span>
+                <Input
+                  id="balanceInterest"
+                  name="balanceInterest"
+                  type="number"
+                  step="0.01"
+                  value={form.balanceInterest}
+                  disabled
+                  className="pl-7 bg-gray-100 cursor-not-allowed"
+                />
+              </div>
+            </div>
+            <div>
               <label className="block text-sm font-medium mb-1 flex items-center gap-1" htmlFor="interestAmount">
-                New Interest Amount
+                Interest Amount
                 <Dialog>
                   <DialogTrigger asChild>
                     <Info className="w-4 h-4 text-blue-600 cursor-pointer" />
@@ -459,7 +462,7 @@ const CreateEntryForm = ({
                       </div>
                       <div className="flex justify-between border-t pt-2 mt-2 font-semibold">
                         <span>New Interest Amount</span>
-                        <span className="text-lg">{formatCurrency(parseFloat(form.interestAmount || '0'))}</span>
+                        <span className="text-lg">{formatCurrency(parseFloat(form.totalPendingInterest || '0'))}</span>
                       </div>
                     </div>
                   </DialogContent>
@@ -473,7 +476,7 @@ const CreateEntryForm = ({
                   name="interestAmount"
                   type="number"
                   step="0.01"
-                  value={form.interestAmount}
+                  value={form.totalPendingInterest}
                   disabled
                   className="pl-7 bg-gray-100 cursor-not-allowed"
                 />

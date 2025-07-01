@@ -12,16 +12,16 @@ const calculateUpdatedLoanBalances = (loan, receivedAmount = 0, receivedInterest
   const currentBalanceInterest = loan.balanceInterest;
   const interestRate = loan.interest;
   
-  // Calculate interest on balance amount only
+  // Calculate interest on current balance amount
   const interestOnBalance = (currentBalanceAmount * interestRate) / 100;
   
-  // New interest amount = interest on balance + current balance interest
-  const newInterestAmount = interestOnBalance + currentBalanceInterest;
+  // Interest accrued for this period (does not include previously pending interest)
+  const newInterestAmount = interestOnBalance;
   
-  // Add new interest to existing balance interest to get total before payment
+  // Total interest due before applying the received payment
   const totalInterestBeforePayment = currentBalanceInterest + newInterestAmount;
   
-  // Apply received interest payment
+  // Apply received interest payment against the total interest due
   const remainingBalanceInterest = Math.max(0, totalInterestBeforePayment - receivedInterest);
   
   // Apply received amount payment to principal
@@ -194,57 +194,7 @@ const createEntry = asyncHandler(async (req, res) => {
 
   res.status(201).json(result);
 });
-
-// PUT /api/entries/:id
-const updateEntry = asyncHandler(async (req, res) => {
-  const id = parseInt(req.params.id);
-  if (!id) throw createError(400, "Invalid entry ID");
-
-  const schema = z
-    .object({
-      loanId: z.number().int().positive().optional(),
-      entryDate: z.coerce.date().optional(),
-      balanceAmount: z.number().nonnegative().optional(),
-      interestAmount: z.number().nonnegative().optional(),
-      receivedDate: z.coerce.date().optional().nullable(),
-      receivedAmount: z.number().nonnegative().optional().nullable(),
-      receivedInterest: z.number().nonnegative().optional().nullable(),
-    })
-    .refine((data) => Object.keys(data).length > 0, {
-      message: "At least one field is required",
-    });
-
-  const data = await schema.parseAsync(req.body);
-
-  const existing = await prisma.entry.findUnique({ where: { id } });
-  if (!existing) throw createError(404, "Entry not found");
-
-  const updated = await prisma.entry.update({
-    where: { id },
-    data: {
-      ...data,
-      entryDate: data.entryDate ? new Date(data.entryDate) : undefined,
-      receivedDate: data.receivedDate
-        ? new Date(data.receivedDate)
-        : data.receivedDate, // will set null if provided null
-    },
-  });
-
-  res.json(updated);
-});
-
-// DELETE /api/entries/:id
-const deleteEntry = asyncHandler(async (req, res) => {
-  const id = parseInt(req.params.id);
-  if (!id) throw createError(400, "Invalid entry ID");
-
-  const existing = await prisma.entry.findUnique({ where: { id } });
-  if (!existing) throw createError(404, "Entry not found");
-
-  await prisma.entry.delete({ where: { id } });
-  res.json({ message: "Entry deleted successfully" });
-});
-
+ 
 // GET /api/entries/loan/:loanId/details - Get loan details for interest calculation
 const getLoanDetailsForEntry = asyncHandler(async (req, res) => {
   const loanId = parseInt(req.params.loanId);
@@ -257,24 +207,36 @@ const getLoanDetailsForEntry = asyncHandler(async (req, res) => {
       balanceAmount: true,
       interest: true,
       balanceInterest: true,
+      loanDate: true,
     },
   });
 
   if (!loan) throw createError(404, "Loan not found");
 
-  // Calculate interest on balance amount only
+  // Calculate interest on current balance amount
   const interestOnBalance = (loan.balanceAmount * loan.interest) / 100;
   
-  // New interest amount = interest on balance + current balance interest
-  const newInterestAmount = interestOnBalance + loan.balanceInterest;
+  // Interest accrued for this period
+  const newInterestAmount = interestOnBalance;
   
-  // Calculate what the total interest will be after adding new interest
+  // Pending interest after adding this period's interest
   const totalInterestAfterNewPeriod = loan.balanceInterest + newInterestAmount;
+
+  // Determine next suggested entry date: 30 days after the most recent entry (or loan date if no entries)
+  const latestEntry = await prisma.entry.findFirst({
+    where: { loanId },
+    orderBy: { entryDate: "desc" },
+    select: { entryDate: true },
+  });
+
+  const baseDate = latestEntry?.entryDate ?? loan.loanDate;
+  const nextEntryDate = new Date(baseDate.getTime() + 30 * 24 * 60 * 60 * 1000).toISOString();
 
   res.json({
     ...loan,
     calculatedInterestAmount: newInterestAmount,
     totalPendingInterest: totalInterestAfterNewPeriod,
+    nextEntryDate,
   });
 });
 
@@ -282,7 +244,5 @@ module.exports = {
   getEntries,
   getEntry,
   createEntry,
-  updateEntry,
-  deleteEntry,
   getLoanDetailsForEntry,
 };

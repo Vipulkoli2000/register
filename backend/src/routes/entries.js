@@ -124,7 +124,7 @@ router.post("/", auth, entriesController.createEntry);
  *       404:
  *         description: Entry not found
  */
-router.put("/:id", auth, entriesController.updateEntry);
+// router.put removed – entries are immutable
 
 /**
  * @swagger
@@ -147,6 +147,6 @@ router.put("/:id", auth, entriesController.updateEntry);
  *       404:
  *         description: Entry not found
  */
-router.delete("/:id", auth, entriesController.deleteEntry);
+// router.delete removed – entries are immutable
 
 module.exports = router;
