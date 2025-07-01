@@ -86,23 +86,8 @@ export function NavUser({
                 </div>
               </DropdownMenuLabel>
               <DropdownMenuSeparator />
-              <DropdownMenuGroup>
-                <DropdownMenuItem
-                  onClick={() => navigate("/profile")}
-                  className="cursor-pointer"
-                >
-                  <UserPen className="mr-2 h-4 w-4" />
-                  Update Profile
-                </DropdownMenuItem>
-                <DropdownMenuItem
-                  onClick={() => navigate("/forgot-password")}
-                  className="cursor-pointer"
-                >
-                  <KeySquare /> Change Password
-                </DropdownMenuItem>
-              </DropdownMenuGroup>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem
+            
+               <DropdownMenuItem
                 onSelect={(e) => {
                   e.preventDefault();
                   setShowConfirmation(true);

@@ -21,6 +21,7 @@ import LoanList from "@/modules/Loans/LoanList";
 import EntriesList from "@/modules/Loans/Entries";
 import Profile from "./modules/profile/EditAgency";
  import Dashboard from "./modules/Dashboard/dashboard";
+import Registerformat from "./modules/Register/register";
 import { Toaster } from "sonner";
 import "./App.css";
 const App = () => {
@@ -93,6 +94,14 @@ const App = () => {
               element={
                 <ProtectedRoute>
                   <EntriesList />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/registers"
+              element={
+                <ProtectedRoute>
+                  <Registerformat />
                 </ProtectedRoute>
               }
             />
