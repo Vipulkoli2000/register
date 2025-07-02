@@ -181,7 +181,8 @@ const PartyList = () => {
             <Table>
               <TableHeader>
                 <TableRow className="bg-muted/50 hover:bg-muted/50">
-               
+                <TableHead>Account Number</TableHead>
+
                   <TableHead className="w-auto cursor-pointer" onClick={() => handleSort("partyName")}>
                     Party Name
                     {sortBy === "partyName" && (
@@ -212,6 +213,7 @@ const PartyList = () => {
                 ) : (
                   data?.parties?.map((party: any) => (
                     <TableRow key={party.id}>
+                      <TableCell>{party.accountNumber}</TableCell>
                       <TableCell>{party.partyName}</TableCell>
                       <TableCell>{party.mobile1}</TableCell>
                       <TableCell>{party.reference}</TableCell>

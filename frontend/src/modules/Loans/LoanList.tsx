@@ -19,6 +19,7 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogTrigger,
 } from "@/components/ui/dialog";
 import { Card, CardContent, CardDescription, CardHeader } from "@/components/ui/card";
 import {
@@ -29,7 +30,8 @@ import {
   PlusCircle,
   List,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  Info
 } from "lucide-react";
 import {
   AlertDialog,
@@ -43,10 +45,11 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import CustomPagination from "@/components/common/custom-pagination";
-import { get, del } from "@/services/apiService";
+import { get, del, post } from "@/services/apiService";
 // Import components from current directory
 import CreateLoan from "./CreateLoan";
 import EditLoan from "./EditLoan";
+import EntryDialog from "./EntryDialog";
 
 interface Loan {
   id: number;
@@ -126,6 +129,8 @@ const LoanList = () => {
   const [editLoanId, setEditLoanId] = useState<string | null>(null);
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [selectedLoanId, setSelectedLoanId] = useState<number | null>(null);
+  const [isEntryDialogOpen, setIsEntryDialogOpen] = useState(false);
   const [currentDate, setCurrentDate] = useState(new Date());
 
   const handlePrevMonths = () => {
@@ -145,8 +150,7 @@ const LoanList = () => {
   } = useQuery<LoansResponse>({
     queryKey: ["loans", currentPage, recordsPerPage, search, sortBy, sortOrder],
     queryFn: () => {
-      console.log('API Call with params:', { page: currentPage, limit: recordsPerPage, search, sortBy, sortOrder });
-      return get("/loans", { page: currentPage, limit: recordsPerPage, search, sortBy, sortOrder });
+       return get("/loans", { page: currentPage, limit: recordsPerPage, search, sortBy, sortOrder });
     },
   });
 
@@ -174,6 +178,7 @@ const LoanList = () => {
       toast.error(error.errors?.message || error.message || "Failed to delete loan");
     },
   });
+
 
   // Handle search input
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -359,7 +364,14 @@ const LoanList = () => {
                   </TableRow>
                 ) : (
                   tableData.map(row => (
-                    <TableRow key={row.id}>
+                    <TableRow 
+                      key={row.id} 
+                      className="cursor-pointer hover:bg-muted/50" 
+                      onClick={() => {
+                        setSelectedLoanId(row.id);
+                        setIsEntryDialogOpen(true);
+                      }}
+                    >
                       <TableCell>{row.party?.accountNumber}</TableCell>
                       <TableCell>{format(parseISO(row.loanDate), "dd/MM/yyyy")}</TableCell>
                       <TableCell>
@@ -441,8 +453,8 @@ const LoanList = () => {
                         );
                       })}
                       <TableCell className="text-right">
-                        <div className="flex justify-end gap-2">
-                          <Button
+                        <div className="flex justify-end gap-2" onClick={(e) => e.stopPropagation()}>
+                          {/* <Button
                             variant="ghost"
                             size="sm"
                             onClick={() => navigate(`/entries?loanId=${row.id}`)}
@@ -450,7 +462,7 @@ const LoanList = () => {
                           >
                             <List className="h-4 w-4" />
                             <span className="sr-only">Entries</span>
-                          </Button>
+                          </Button> */}
                           <Button
                             variant="ghost"
                             size="icon"
@@ -535,8 +547,17 @@ const LoanList = () => {
           </DialogContent>
         </Dialog>
       )}
+
+      {/* Entry Creation Dialog */}
+      <EntryDialog
+        selectedLoanId={selectedLoanId}
+        isEntryDialogOpen={isEntryDialogOpen}
+        setIsEntryDialogOpen={setIsEntryDialogOpen}
+        setSelectedLoanId={setSelectedLoanId}
+      />
     </div>
   );
 };
+
 
 export default LoanList;

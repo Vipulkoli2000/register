@@ -28,8 +28,7 @@ const CustomPagination: React.FC<CustomPaginationProps> = ({
   //   return null;
   // }
   
-  console.log('Pagination Debug:', { currentPage, totalPages, actualTotalPages, totalRecords, recordsPerPage });
-
+ 
   return (
     <div className="flex flex-col sm:flex-row sm:items-center sm:w-full gap-4 mt-4 sm:relative">
       {/* Records per page selector (only show if callback provided) */}

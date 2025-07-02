@@ -64,18 +64,14 @@ export const AppNavbar = ({ userData, isDarkMode, toggleDarkMode }: AppNavbarPro
            
            
             <NavigationMenuItem>
-              <Link to="/parties">
-                <NavigationMenuLink className={`${navigationMenuTriggerStyle()} bg-transparent hover:bg-transparent focus:bg-transparent`}>
-                  Party
-                </NavigationMenuLink>
-              </Link>
+              <NavigationMenuLink asChild className={`${navigationMenuTriggerStyle()} bg-transparent hover:bg-transparent focus:bg-transparent`}>
+                <Link to="/parties">Party</Link>
+              </NavigationMenuLink>
             </NavigationMenuItem>
             <NavigationMenuItem>
-              <Link to="/loans">
-                <NavigationMenuLink className={`${navigationMenuTriggerStyle()} bg-transparent hover:bg-transparent focus:bg-transparent`}>
-                  Loan
-                </NavigationMenuLink>
-              </Link>
+              <NavigationMenuLink asChild className={`${navigationMenuTriggerStyle()} bg-transparent hover:bg-transparent focus:bg-transparent`}>
+                <Link to="/loans">Loan</Link>
+              </NavigationMenuLink>
             </NavigationMenuItem>
           </NavigationMenuList>
         </NavigationMenu>
