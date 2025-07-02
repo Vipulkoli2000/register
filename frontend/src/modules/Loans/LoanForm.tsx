@@ -302,33 +302,36 @@ const LoanForm = ({
 
   // state for combobox popover
   const [openParty, setOpenParty] = useState(false);
-  // state for party selection
+  // state for party selection - always "existing" in edit mode
   const [selectedParty, setSelectedParty] = useState("existing");
 
   return (
     <div className={className}>
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-7">
-        {/* Radio buttons for party selection */}
-        <div className="grid gap-4 mb-6">
-          <Label>Party Selection <span className="text-red-500">*</span></Label>
-          <RadioGroup
-            defaultValue="existing"
-            onValueChange={(value) => setSelectedParty(value)}
-            className="flex gap-6"
-          >
-            <div className="flex items-center space-x-2">
-              <RadioGroupItem value="existing" id="existing" />
-              <Label htmlFor="existing">Existing Party</Label>
-            </div>
-            <div className="flex items-center space-x-2">
-              <RadioGroupItem value="create" id="create" />
-              <Label htmlFor="create">Create Party</Label>
-            </div>
-          </RadioGroup>
-        </div>
+        {/* Radio buttons for party selection - Only show in create mode */}
+        {mode === "create" && (
+          <div className="grid gap-4 mb-6">
+            <Label>Party Selection <span className="text-red-500">*</span></Label>
+            <RadioGroup
+              defaultValue="existing"
+              onValueChange={(value) => setSelectedParty(value)}
+              className="flex gap-6"
+            >
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="existing" id="existing" />
+                <Label htmlFor="existing">Existing Party</Label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="create" id="create" />
+                <Label htmlFor="create">Create Party</Label>
+              </div>
+            </RadioGroup>
+          </div>
+        )}
 
         {/* Conditional rendering based on radio selection */}
-        {selectedParty === "existing" ? (
+        {/* In edit mode, always show existing party selection. In create mode, show based on radio selection */}
+        {(mode === "edit" || selectedParty === "existing") ? (
           <div className="grid gap-2 relative mb-6">
             <Label htmlFor="partyId" className="block mb-2">Select Party <span className="text-red-500">*</span></Label>
             <Controller
