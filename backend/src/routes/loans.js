@@ -13,6 +13,33 @@ const router = express.Router();
 
 /**
  * @swagger
+ * /loans/monthly-summary:
+ *   get:
+ *     summary: Get monthly summary of loans and payments
+ *     tags: [Loans]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: startDate
+ *         schema:
+ *           type: string
+ *           format: date
+ *         description: Start date for summary (defaults to current year start)
+ *       - in: query
+ *         name: endDate
+ *         schema:
+ *           type: string
+ *           format: date
+ *         description: End date for summary (defaults to current year end)
+ *     responses:
+ *       200:
+ *         description: Monthly summary data
+ */
+router.get("/monthly-summary", auth, loanController.getMonthlySummary);
+
+/**
+ * @swagger
  * /loans:
  *   get:
  *     summary: Get all loans

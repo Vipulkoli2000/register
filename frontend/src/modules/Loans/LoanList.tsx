@@ -27,7 +27,9 @@ import {
   Search,
   Trash2,
   PlusCircle,
-  List
+  List,
+  ChevronLeft,
+  ChevronRight
 } from "lucide-react";
 import {
   AlertDialog,
@@ -76,6 +78,13 @@ interface Loan {
   };
 }
 
+interface MonthlyData {
+  loanAmount: number;
+  receivedAmount: number;
+  receivedInterest: number;
+  receivedDate: string | null;
+}
+
 interface TableRowData {
   id: number;
   loanDate: string;
@@ -85,9 +94,13 @@ interface TableRowData {
     mobile1: string;
     address: string;
   };
-  monthlyAmounts: Record<string, number>;
+  monthlyAmounts?: Record<string, number>; // Fallback for old structure
+  monthlyReceivedAmounts?: Record<string, number>; // Fallback for old structure
+  monthlyData?: Record<string, MonthlyData>; // New detailed structure
   totalLoanAmount: number;
   totalBalanceInterest: number;
+  totalReceivedAmount?: number;
+  totalReceivedInterest?: number;
   interest: number;
 }
 
@@ -107,9 +120,18 @@ const LoanList = () => {
   const [editLoanId, setEditLoanId] = useState<string | null>(null);
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [currentDate, setCurrentDate] = useState(new Date());
   const queryClient = useQueryClient();
 
-  // Fetch loans
+  const handlePrevMonths = () => {
+    setCurrentDate((prevDate) => addMonths(prevDate, -3));
+  };
+
+  const handleNextMonths = () => {
+    setCurrentDate((prevDate) => addMonths(prevDate, 3));
+  };
+
+  // Fetch loans for table display
   const {
     data,
     isLoading,
@@ -118,6 +140,19 @@ const LoanList = () => {
   } = useQuery<LoansResponse>({
     queryKey: ["loans", page, limit, search, sortBy, sortOrder],
     queryFn: () => get("/loans", { page, limit, search, sortBy, sortOrder }),
+  });
+
+  // Fetch monthly summary for displaying monthly amounts
+  const {
+    data: monthlySummaryData,
+    isLoading: isLoadingMonthlySummary,
+  } = useQuery({
+    queryKey: ["loans", "monthly-summary", currentDate],
+    queryFn: () => {
+      const startDate = new Date(currentDate.getFullYear(), 0, 1).toISOString();
+      const endDate = new Date(currentDate.getFullYear(), 11, 31).toISOString();
+      return get("/loans/monthly-summary", { startDate, endDate });
+    },
   });
 
   // Delete loan mutation
@@ -170,33 +205,47 @@ const LoanList = () => {
   };
 
   const { tableData, months } = useMemo(() => {
-    if (!data?.loans || data.loans.length === 0) {
-      const today = new Date();
-      const nextMonths = [];
-      for (let i = 0; i <= 3; i++) {
-        nextMonths.push(format(addMonths(today, i), "MMMM yyyy"));
-      }
-      return { tableData: [], months: nextMonths };
+    const visibleMonths = [];
+    for (let i = 0; i < 3; i++) {
+      visibleMonths.push(format(addMonths(currentDate, i), "MMMM yyyy"));
     }
 
-    const loanMonths = [...new Set(data.loans.map(loan => format(parseISO(loan.loanDate), "MMMM yyyy")))];
-    loanMonths.sort((a, b) => new Date(a).getTime() - new Date(b).getTime());
-    
-    const lastMonthDate = new Date(loanMonths[loanMonths.length - 1]);
-    const allMonths = [...loanMonths];
-    for (let i = 1; i <= 3; i++) {
-      const nextMonth = format(addMonths(lastMonthDate, i), "MMMM yyyy");
-      if (!allMonths.includes(nextMonth)) {
-        allMonths.push(nextMonth);
-      }
+    // Use monthly summary data if available, otherwise fall back to loan data
+    if (monthlySummaryData?.summary && monthlySummaryData.summary.length > 0) {
+      const tableData = monthlySummaryData.summary.map((summary: any) => ({
+        id: summary.loanId,
+        loanDate: summary.loanDate,
+        partyName: summary.partyName,
+        party: {
+          partyName: summary.partyName,
+          mobile1: summary.mobile1,
+          address: summary.address,
+        },
+        monthlyData: summary.monthlyData || {}, // Contains detailed monthly info
+        totalLoanAmount: summary.totalLoanAmount,
+        totalBalanceInterest: 0, // Not needed for display
+        totalReceivedAmount: summary.totalReceivedAmount,
+        totalReceivedInterest: summary.totalReceivedInterest,
+        interest: summary.interest,
+      }));
+      
+      return { tableData, months: visibleMonths };
+    }
+
+    // Fallback to regular loan data if summary is not available
+    if (!data?.loans || data.loans.length === 0) {
+      return { tableData: [], months: visibleMonths };
     }
 
     const tableData = data.loans.reduce((acc, loan) => {
-      const existingEntry = acc.find(entry => entry.partyName === (loan.party?.partyName || loan.partyName));
+      const existingEntry = acc.find(
+        (entry) => entry.partyName === (loan.party?.partyName || loan.partyName)
+      );
       const month = format(parseISO(loan.loanDate), "MMMM yyyy");
 
       if (existingEntry) {
-        existingEntry.monthlyAmounts[month] = (existingEntry.monthlyAmounts[month] || 0) + loan.loanAmount;
+        existingEntry.monthlyAmounts[month] =
+          (existingEntry.monthlyAmounts[month] || 0) + loan.loanAmount;
         existingEntry.totalLoanAmount += loan.loanAmount;
         existingEntry.totalBalanceInterest += loan.balanceInterest;
       } else {
@@ -205,7 +254,9 @@ const LoanList = () => {
           loanDate: loan.loanDate,
           partyName: loan.party?.partyName || loan.partyName,
           party: loan.party,
-          monthlyAmounts: { [month]: loan.loanAmount },
+          monthlyAmounts: {
+            [month]: loan.loanAmount,
+          },
           totalLoanAmount: loan.loanAmount,
           totalBalanceInterest: loan.balanceInterest,
           interest: loan.interest,
@@ -214,8 +265,8 @@ const LoanList = () => {
       return acc;
     }, [] as TableRowData[]);
 
-    return { tableData, months: allMonths };
-  }, [data]);
+    return { tableData, months: visibleMonths };
+  }, [data, monthlySummaryData, currentDate]);
 
 
 
@@ -246,19 +297,34 @@ const LoanList = () => {
         </CardHeader>
       
         <CardContent>
+       
           {/* Toolbar */}
-          <div className="flex flex-col sm:flex-row sm:items-center gap-4 mb-4">
+          <div className="flex flex-col gap-4 mb-4 md:grid md:grid-cols-3 md:items-center">
             {/* Search Input */}
-            <div className="relative flex-1 min-w-[250px]">
+            <div className="relative w-full md:w-auto flex-1 min-w-[200px]">
               <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
               <Input
                 placeholder="Search Loans by Party Name..."
                 value={search}
                 onChange={handleSearchChange}
-                className="pl-8 w-full"
+                className="pl-8 w-full md:w-72"
               />
             </div>
+            <div className="flex items-center justify-center gap-2 md:gap-5 md:mb-0 md:justify-self-center">
+            <Button onClick={handlePrevMonths} variant="outline">
+              <ChevronLeft className="h-4 w-4 mr-1" />
+              Prev
+            </Button>
+            <span className="text-xs md:text-sm font-medium text-center whitespace-nowrap">
+              {format(currentDate, "MMM yyyy")} - {format(addMonths(currentDate, 2), "MMM yyyy")}
+            </span>
+            <Button onClick={handleNextMonths} variant="outline">
+              Next
+              <ChevronRight className="h-4 w-4 ml-1" />
+            </Button>
+          </div>
 
+<div className="flex justify-end md:justify-self-end">
             {/* Action Buttons */}
             <Button
               onClick={() => setIsCreateDialogOpen(true)}
@@ -267,6 +333,7 @@ const LoanList = () => {
               <PlusCircle className="mr-2 h-4 w-4" />
               Add
             </Button>
+          </div>
           </div>
 
  
@@ -285,7 +352,7 @@ const LoanList = () => {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {isLoading ? (
+                {(isLoading || isLoadingMonthlySummary) ? (
                   <TableRow>
                     <TableCell colSpan={months.length + 4} className="text-center">
                       <LoaderCircle className="h-8 w-8 animate-spin inline-block" />
@@ -316,11 +383,69 @@ const LoanList = () => {
                           ({row.interest}%)
                         </span>
                       </TableCell>
-                       {months.map(month => (
-                        <TableCell key={month}>
-                          {row.monthlyAmounts[month] ? formatCurrency(row.monthlyAmounts[month]) : "-"}
-                        </TableCell>
-                      ))}
+                       {months.map(month => {
+                        const monthData = row.monthlyData?.[month];
+                        const hasData = monthData && (
+                          monthData.loanAmount > 0 || 
+                          monthData.receivedAmount > 0 || 
+                          monthData.receivedInterest > 0 ||
+                          monthData.receivedDate
+                        );
+                        
+                        // Fallback to old structure if new structure not available
+                        const fallbackLoanAmount = row.monthlyAmounts?.[month];
+                        const fallbackReceivedAmount = row.monthlyReceivedAmounts?.[month];
+                        
+                        return (
+                          <TableCell key={month}>
+                            <div className="flex flex-col gap-1 text-xs">
+                              {hasData ? (
+                                <>
+                                  {/* Received Date */}
+                                  <div className="text-gray-600 font-medium">
+                                    {monthData.receivedDate 
+                                      ? format(new Date(monthData.receivedDate), "dd/MM/yyyy")
+                                      : "-"
+                                    }
+                                  </div>
+                                  {/* Loan Amount */}
+                                  <div className="text-green-600">
+                                    Loan: {monthData.loanAmount > 0 
+                                      ? formatCurrency(monthData.loanAmount) 
+                                      : "-"
+                                    }
+                                  </div>
+                                  {/* Interest Amount */}
+                                  <div className="text-blue-600">
+                                    Interest: {monthData.receivedInterest > 0 
+                                      ? formatCurrency(monthData.receivedInterest) 
+                                      : "-"
+                                    }
+                                  </div>
+                                </>
+                              ) : fallbackLoanAmount || fallbackReceivedAmount ? (
+                                // Fallback display for old structure
+                                <>
+                                  <div className="text-gray-600">-</div>
+                                  <div className="text-green-600">
+                                    {fallbackLoanAmount ? formatCurrency(fallbackLoanAmount) : "-"}
+                                  </div>
+                                  <div className="text-blue-600">
+                                    {fallbackReceivedAmount ? `Paid: ${formatCurrency(fallbackReceivedAmount)}` : "-"}
+                                  </div>
+                                </>
+                              ) : (
+                                // No data at all
+                                <>
+                                  <div className="text-gray-600">-</div>
+                                  <div className="text-green-600">-</div>
+                                  <div className="text-blue-600">-</div>
+                                </>
+                              )}
+                            </div>
+                          </TableCell>
+                        );
+                      })}
                       <TableCell className="text-right">
                         <div className="flex justify-end gap-2">
                           <Button
