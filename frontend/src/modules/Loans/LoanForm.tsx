@@ -40,8 +40,7 @@ const loanFormSchema = z.object({
     .nonempty("Loan date is required"),
     loanAmount: z.string()
     .nonempty("Loan amount is required"),
-    balanceAmount: z.string()
-    .nonempty("Balance amount is required"),
+    balanceAmount: z.string().optional(),
     interest: z.string()
     .nonempty("Interest is required"),
     balanceInterest: z.string().optional(),
@@ -261,9 +260,9 @@ const LoanForm = ({
           partyId: createdParty.id,
           loanDate: data.loanDate,
           loanAmount: Number(data.loanAmount),
-          balanceAmount: Number(data.balanceAmount),
+          balanceAmount: Number(data.loanAmount), // Balance equals loan amount
           interest: Number(data.interest),
-          balanceInterest: Number(data.balanceInterest || "0"),
+          balanceInterest: 0, // Initialize balance interest to 0
         };
         
         createLoanMutation.mutate(loanPayload);
@@ -274,12 +273,12 @@ const LoanForm = ({
     } else {
       // Convert string inputs to numbers to match backend expectations
       const payload = {
-        ...data,
         partyId: parseInt(data.partyId, 10),
+        loanDate: data.loanDate,
         loanAmount: Number(data.loanAmount),
-        balanceAmount: Number(data.balanceAmount),
+        balanceAmount: Number(data.loanAmount), // Balance equals loan amount
         interest: Number(data.interest),
-        balanceInterest: Number(data.balanceInterest || "0"),
+        balanceInterest: 0, // Initialize balance interest to 0
       };
       if (mode === "create") {
         createLoanMutation.mutate(payload);
@@ -542,47 +541,7 @@ type="number"
             </span>
           )}
         </div>
-        {/* Balance Amount and Interest */}
-        <div className="grid grid-cols-2 gap-4 mb-6">
-          <div>
-            <Label htmlFor="balanceAmount" className="block mb-2">
-              Balance Amount <span className="text-red-500">*</span>
-            </Label>
-            <div className="relative">
-              <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-500">
-                ₹
-              </span>
-              <Input
-                type="number"
-                id="balanceAmount"
-                placeholder="Enter balance amount"
-                {...register("balanceAmount")}
-                disabled
-                className={`pl-7 ${mode === "create" ? "bg-gray-50" : ""}`}
-              />
-            </div>
-            {errors.balanceAmount && (
-              <span className="mt-1 block text-xs text-destructive">
-                {errors.balanceAmount.message}
-              </span>
-            )}
-          </div>
-          <div>
-            <Label htmlFor="balanceInterest" className="block mb-2">Balance Interest</Label>
-            <Input
-              type="number"
-              id="balanceInterest"
-              placeholder="Enter balance interest"
-              {...register("balanceInterest")}
-              disabled
-            />
-            {errors.balanceInterest && (
-              <span className="mt-1 block text-xs text-destructive">
-                {errors.balanceInterest.message}
-              </span>
-            )}
-          </div>
-        </div>
+
         {/* Form Actions */}
         <div className="flex justify-end gap-2">
           <Button

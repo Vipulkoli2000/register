@@ -1,7 +1,8 @@
 import { Link, useNavigate } from "react-router-dom";
-import { LogOut, Menu, Trash2 } from "lucide-react";
+import { LogOut, Menu, Trash } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import { Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { ThemeToggle } from "@/components/common/theme-toggle";
 import {
@@ -100,14 +101,18 @@ export const AppNavbar = ({ userData, isDarkMode, toggleDarkMode }: AppNavbarPro
         <ThemeToggle isDarkMode={isDarkMode} toggleDarkMode={toggleDarkMode} />
         
         {/* Recycle Bin */}
-        <Link 
-          to="/recycle-bin"
-          className="inline-flex items-center justify-center h-9 w-9 rounded-md hover:bg-accent hover:text-accent-foreground transition-colors"
-          title="Recycle Bin"
-        >
-          <Trash2 className="h-4 w-4" />
-          <span className="sr-only">Recycle Bin</span>
-        </Link>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Link 
+              to="/recycle-bin"
+              className="inline-flex items-center justify-center h-9 w-9 rounded-md hover:bg-accent hover:text-accent-foreground transition-colors"
+            >
+              <Trash className="h-4 w-4" />
+              <span className="sr-only">Recycle Bin</span>
+            </Link>
+          </TooltipTrigger>
+          <TooltipContent sideOffset={4}>Recycle Bin</TooltipContent>
+        </Tooltip>
         
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
