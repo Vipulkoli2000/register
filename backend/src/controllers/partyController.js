@@ -54,6 +54,7 @@ const getParties = asyncHandler(async (req, res) => {
     ? {
         OR: [
           { partyName: { contains: search } },
+          { accountNumber: { contains: search } },
           
         ],
       }
@@ -92,6 +93,7 @@ const getParty = asyncHandler(async (req, res) => {
 const createParty = asyncHandler(async (req, res) => {
   const schema = z.object({
     partyName: z.string().min(1, "Party name is required").max(255),
+    accountNumber: z.string().min(1, "Account number is required").max(255),
     address: z.string().min(1, "Address is required").max(500),
     mobile1: z.string().min(1, "Mobile1 is required").max(20),
     mobile2: z.string().max(20).optional().nullable(),
@@ -114,6 +116,7 @@ const updateParty = asyncHandler(async (req, res) => {
   const schema = z
     .object({
       partyName: z.string().min(1).max(255).optional(),
+      accountNumber: z.string().min(1).max(255).optional(),
       address: z.string().min(1).max(500).optional(),
       mobile1: z.string().min(1).max(20).optional(),
       mobile2: z.string().max(20).optional().nullable(),

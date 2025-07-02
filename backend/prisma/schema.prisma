@@ -25,6 +25,7 @@ model User {
 model Party {
   id               Int       @id @default(autoincrement())
   partyName        String
+  accountNumber    String    @unique
   address          String
   mobile1          String
   mobile2          String?

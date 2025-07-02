@@ -16,6 +16,7 @@ import Validate from "@/lib/Handlevalidation";
 interface PartyData {
   id: number;
   partyName: string;
+  accountNumber: string;
   address: string;
   mobile1: string;
   mobile2: string;
@@ -30,6 +31,9 @@ const partyFormSchema = z.object({
   partyName: z.string()
     .min(1, "Party name is required")
     .max(255, "Party name must not exceed 255 characters"),
+    accountNumber: z.string()
+    .min(1, "Account number is required")
+    .max(255, "Account number must not exceed 255 characters"),
     address: z.string()
     .min(1, "Address is required")
     .max(255, "Address must not exceed 255 characters"),
@@ -75,6 +79,7 @@ const PartyForm = ({
     resolver: zodResolver(partyFormSchema),
     defaultValues: {
       partyName: "",
+      accountNumber: "",
       address: "",
       mobile1: "",
       mobile2: "",
@@ -106,6 +111,7 @@ const PartyForm = ({
         },
       }).then((data) => {
         setValue("partyName", data.partyName);
+        setValue("accountNumber", data.accountNumber);
         setValue("address", data.address);
         setValue("mobile1", data.mobile1);
         setValue("mobile2", data.mobile2);
@@ -213,6 +219,22 @@ const PartyForm = ({
               {errors.partyName.message}
             </span>
           )}
+
+          {/* Account Number Field */}
+          <div className="grid gap-2 relative">
+            <Label htmlFor="accountNumber" className="block mb-2">Account Number <span className="text-red-500">*</span></Label>
+            <Input
+              id="accountNumber"
+              placeholder="Enter account number"
+              {...register("accountNumber")}
+              disabled={isFormLoading}
+            />
+            {errors.accountNumber && (
+              <span className="mt-1 block text-xs text-destructive">
+                {errors.accountNumber.message}
+              </span>
+            )}
+          </div>
 
          
             <Label htmlFor="address" className="block mb-2">Address <span className="text-red-500">*</span></Label>

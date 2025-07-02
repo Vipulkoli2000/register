@@ -56,8 +56,10 @@ interface Loan {
   interest: number;
   balanceInterest: number;
   partyName: string;
+  accountNumber: string;
   party?: {
     partyName: string;
+    accountNumber: string;
     mobile1: string;
     address: string;
   };
@@ -71,8 +73,10 @@ interface Loan {
   interest: number;
   balanceInterest: number;
   partyName: string;
+  accountNumber: string;
   party?: {
     partyName: string;
+    accountNumber: string;
     mobile1: string;
     address: string;
   };
@@ -91,6 +95,7 @@ interface TableRowData {
   partyName: string;
   party?: {
     partyName: string;
+    accountNumber: string;
     mobile1: string;
     address: string;
   };
@@ -329,6 +334,7 @@ const LoanList = () => {
             <Table>
               <TableHeader>
                 <TableRow className="bg-muted/50 hover:bg-muted/50">
+                <TableHead>Account Number</TableHead>
                 <TableHead>Loan Date</TableHead>
                   <TableHead>Party</TableHead>
                   <TableHead>Loan(Interest)</TableHead>
@@ -354,6 +360,7 @@ const LoanList = () => {
                 ) : (
                   tableData.map(row => (
                     <TableRow key={row.id}>
+                      <TableCell>{row.party?.accountNumber}</TableCell>
                       <TableCell>{format(parseISO(row.loanDate), "dd/MM/yyyy")}</TableCell>
                       <TableCell>
                         <div className="flex flex-col">
