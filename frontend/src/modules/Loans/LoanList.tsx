@@ -206,36 +206,54 @@ const LoanList = () => {
   };
 
   const { tableData, months } = useMemo(() => {
-    const visibleMonths = [];
+    // Prepare 3-month window header starting from currentDate
+    const visibleMonths: string[] = [];
     for (let i = 0; i < 3; i++) {
       visibleMonths.push(format(addMonths(currentDate, i), "MMMM yyyy"));
     }
 
-    // Use paginated loan data from the main API
+    // If we don't have any loans, bail out early
     if (!data?.loans || data.loans.length === 0) {
       return { tableData: [], months: visibleMonths };
     }
 
-    // Convert each loan to a table row (no grouping for proper pagination)
+    // Build a map of loanId → monthly summary for quick lookup
+    const summaryMap = new Map<number, any>();
+    if (monthlySummaryData && Array.isArray((monthlySummaryData as any).summary)) {
+      (monthlySummaryData as any).summary.forEach((item: any) => {
+        summaryMap.set(item.loanId, item);
+      });
+    }
+
+    // Convert each loan into the table row expected by the UI
     const tableData = data.loans.map((loan) => {
-      const month = format(parseISO(loan.loanDate), "MMMM yyyy");
-      
+      const monthOfLoan = format(parseISO(loan.loanDate), "MMMM yyyy");
+      const summary = summaryMap.get(loan.id);
+
       return {
         id: loan.id,
         loanDate: loan.loanDate,
         partyName: loan.party?.partyName || loan.partyName,
         party: loan.party,
+
+        // Old structure – retain for backwards compatibility / fallback
         monthlyAmounts: {
-          [month]: loan.loanAmount,
+          [monthOfLoan]: loan.loanAmount,
         },
-        totalLoanAmount: loan.loanAmount,
+
+        // New structure coming from /loans/monthly-summary
+        monthlyData: summary?.monthlyData ?? {},
+        monthlyReceivedAmounts: summary?.monthlyReceivedAmounts ?? {},
+        totalLoanAmount: summary?.totalLoanAmount ?? loan.loanAmount,
+        totalReceivedAmount: summary?.totalReceivedAmount ?? 0,
+        totalReceivedInterest: summary?.totalReceivedInterest ?? 0,
         totalBalanceInterest: loan.balanceInterest,
         interest: loan.interest,
-      };
+      } as TableRowData;
     });
 
     return { tableData, months: visibleMonths };
-  }, [data, currentDate]);
+  }, [data, currentDate, monthlySummaryData]);
 
 
 
