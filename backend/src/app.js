@@ -12,6 +12,7 @@ const partyRoutes = require("./routes/parties");
 const loanRoutes = require("./routes/loans");
 const entryRoutes = require("./routes/entries");
 const authRoutes = require("./routes/auth");
+const recycleBinRoutes = require("./routes/recycleBin");
 const swaggerRouter = require("./swagger");
 
 const app = express();
@@ -74,6 +75,7 @@ app.use("/api/users", userRoutes);
 app.use("/api/parties", partyRoutes);
 app.use("/api/loans", loanRoutes);
 app.use("/api/entries", entryRoutes);
+app.use("/api/recycle-bin", recycleBinRoutes);
 app.use(swaggerRouter);
 
 app.get("*", (req, res, next) => {

@@ -47,8 +47,11 @@ model Loan {
   interest         Float
   balanceInterest  Float
   entries          Entry[]
+  deletedAt        DateTime? // Soft delete
   createdAt        DateTime  @default(now())
   updatedAt        DateTime  @updatedAt
+
+  @@index([deletedAt])
 }
 
 model Entry {
@@ -65,6 +68,9 @@ model Entry {
   receivedAmount   Float?
   receivedInterest Float?
 
+  deletedAt        DateTime? // Soft delete
   createdAt        DateTime  @default(now())
   updatedAt        DateTime  @updatedAt
+
+  @@index([deletedAt])
 }

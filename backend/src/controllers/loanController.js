@@ -54,9 +54,11 @@ const getLoans = asyncHandler(async (req, res) => {
   const search = req.query.search || "";
   const { partyId, sortBy = "loanDate", sortOrder = "desc" } = req.query;
 
-  // Build where clause with search functionality
+  // Build where clause with search functionality and exclude soft-deleted items
   const whereClause = {
     AND: [
+      // Exclude soft-deleted loans
+      { deletedAt: null },
       // Search in party name if search term is provided
       search ? {
         party: {
@@ -158,27 +160,53 @@ const updateLoan = asyncHandler(async (req, res) => {
   const existing = await prisma.loan.findUnique({ where: { id } });
   if (!existing) throw createError(404, "Loan not found");
 
+  // Build update payload with only allowed fields
+  const updateData = {};
+  if (req.body.partyId !== undefined) updateData.partyId = req.body.partyId;
+  if (req.body.loanDate !== undefined) updateData.loanDate = new Date(req.body.loanDate);
+  if (req.body.loanAmount !== undefined) updateData.loanAmount = req.body.loanAmount;
+  if (req.body.balanceAmount !== undefined) updateData.balanceAmount = req.body.balanceAmount;
+  if (req.body.interest !== undefined) updateData.interest = req.body.interest;
+  if (req.body.balanceInterest !== undefined) updateData.balanceInterest = req.body.balanceInterest;
+
   const updated = await prisma.loan.update({
     where: { id },
-    data: {
-      ...req.body,
-      loanDate: req.body.loanDate ? new Date(req.body.loanDate) : undefined,
-    },
+    data: updateData,
   });
 
   res.json(updated);
 });
 
-// DELETE /api/loans/:id
+// DELETE /api/loans/:id (Soft delete)
 const deleteLoan = asyncHandler(async (req, res) => {
   const id = parseInt(req.params.id);
   if (!id) throw createError(400, "Invalid loan ID");
 
-  const existing = await prisma.loan.findUnique({ where: { id } });
+  const existing = await prisma.loan.findUnique({ 
+    where: { id },
+    include: { entries: true }
+  });
   if (!existing) throw createError(404, "Loan not found");
+  if (existing.deletedAt) throw createError(400, "Loan is already deleted");
 
-  await prisma.loan.delete({ where: { id } });
-  res.json({ message: "Loan deleted successfully" });
+  // Use transaction to soft delete loan and its entries
+  await prisma.$transaction(async (prisma) => {
+    const now = new Date();
+    
+    // Soft delete all entries belonging to this loan
+    await prisma.entry.updateMany({
+      where: { loanId: id, deletedAt: null },
+      data: { deletedAt: now }
+    });
+    
+    // Soft delete the loan
+    await prisma.loan.update({
+      where: { id },
+      data: { deletedAt: now }
+    });
+  });
+  
+  res.json({ message: "Loan moved to recycle bin successfully" });
 });
 
 // GET /api/loans/monthly-summary

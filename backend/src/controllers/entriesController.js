@@ -90,7 +90,12 @@ const getEntries = asyncHandler(async (req, res) => {
     sortOrder = "desc", // "asc" | "desc"
   } = req.query;
 
-  const where = loanId ? { loanId: parseInt(loanId) } : {};
+  const where = {
+    AND: [
+      { deletedAt: null }, // Exclude soft-deleted entries
+      loanId ? { loanId: parseInt(loanId) } : {},
+    ].filter(condition => Object.keys(condition).length > 0),
+  };
 
   const [entries, total] = await Promise.all([
     prisma.entry.findMany({
