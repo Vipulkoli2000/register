@@ -48,16 +48,31 @@ const asyncHandler = (fn) => (req, res, next) => {
 
 // GET /api/loans
 const getLoans = asyncHandler(async (req, res) => {
-  const page = Math.max(1, parseInt(req.query.page) || 1);
-  const limit = Math.max(1, parseInt(req.query.limit) || 10);
+  const page = parseInt(req.query.page) || 1;
+  const limit = parseInt(req.query.limit) || 10;
   const skip = (page - 1) * limit;
+  const search = req.query.search || "";
   const { partyId, sortBy = "loanDate", sortOrder = "desc" } = req.query;
 
-  const where = partyId ? { partyId: parseInt(partyId) } : {};
+  // Build where clause with search functionality
+  const whereClause = {
+    AND: [
+      // Search in party name if search term is provided
+      search ? {
+        party: {
+          partyName: {
+            contains: search
+          }
+        }
+      } : {},
+      // Filter by partyId if provided
+      partyId ? { partyId: parseInt(partyId) } : {},
+    ].filter(condition => Object.keys(condition).length > 0),
+  };
 
-  const [loans, total] = await Promise.all([
+  const [loans, totalLoans] = await Promise.all([
     prisma.loan.findMany({
-      where,
+      where: whereClause,
       skip,
       take: limit,
       orderBy: { [sortBy]: sortOrder },
@@ -65,11 +80,17 @@ const getLoans = asyncHandler(async (req, res) => {
         party: true,
       },
     }),
-    prisma.loan.count({ where }),
+    prisma.loan.count({ where: whereClause }),
   ]);
 
-  const totalPages = Math.ceil(total / limit);
-  res.json({ loans, page, totalPages, totalLoans: total });
+  const totalPages = Math.ceil(totalLoans / limit);
+  
+  res.json({ 
+    loans, 
+    page, 
+    totalPages, 
+    totalLoans
+  });
 });
 
 // GET /api/loans/:id
@@ -162,7 +183,9 @@ const deleteLoan = asyncHandler(async (req, res) => {
 
 // GET /api/loans/monthly-summary
 const getMonthlySummary = asyncHandler(async (req, res) => {
-  const { startDate, endDate } = req.query;
+  const { startDate, endDate, page = 1, limit = 10, search } = req.query;
+  const pageNum = Math.max(1, parseInt(page));
+  const limitNum = Math.max(1, Math.min(100, parseInt(limit)));
   
   // Default to current year if no dates provided
   const start = startDate ? new Date(startDate) : new Date(new Date().getFullYear(), 0, 1);

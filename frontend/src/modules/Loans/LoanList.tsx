@@ -112,16 +112,16 @@ interface LoansResponse {
 
 const LoanList = () => {
   const navigate = useNavigate();
-  const [page, setPage] = useState(1);
+  const queryClient = useQueryClient();
+  const [currentPage, setCurrentPage] = useState(1);
+  const [recordsPerPage, setRecordsPerPage] = useState(10);
+  const [sortBy, setSortBy] = useState("loanDate");
+  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
   const [search, setSearch] = useState("");
-  const [limit, setLimit] = useState(10);
-  const [sortBy] = useState("loanDate");
-  const [sortOrder] = useState<"asc" | "desc">("asc");
   const [editLoanId, setEditLoanId] = useState<string | null>(null);
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [currentDate, setCurrentDate] = useState(new Date());
-  const queryClient = useQueryClient();
 
   const handlePrevMonths = () => {
     setCurrentDate((prevDate) => addMonths(prevDate, -3));
@@ -138,8 +138,11 @@ const LoanList = () => {
     isError,
     error,
   } = useQuery<LoansResponse>({
-    queryKey: ["loans", page, limit, search, sortBy, sortOrder],
-    queryFn: () => get("/loans", { page, limit, search, sortBy, sortOrder }),
+    queryKey: ["loans", currentPage, recordsPerPage, search, sortBy, sortOrder],
+    queryFn: () => {
+      console.log('API Call with params:', { page: currentPage, limit: recordsPerPage, search, sortBy, sortOrder });
+      return get("/loans", { page: currentPage, limit: recordsPerPage, search, sortBy, sortOrder });
+    },
   });
 
   // Fetch monthly summary for displaying monthly amounts
@@ -170,22 +173,20 @@ const LoanList = () => {
   // Handle search input
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearch(e.target.value);
-    setPage(1); // Reset to first page when search changes
+    setCurrentPage(1); // Reset to first page when search changes
   };
-
-
 
   // Handle pagination
   const handlePageChange = (newPage: number) => {
     if (newPage > 0 && (!data || newPage <= data.totalPages)) {
-      setPage(newPage);
+      setCurrentPage(newPage);
     }
   };
 
   // Handle records per page change
   const handleRecordsPerPageChange = (newLimit: number) => {
-    setLimit(newLimit);
-    setPage(1); // Reset to first page when limit changes
+    setRecordsPerPage(newLimit);
+    setCurrentPage(1); // Reset to first page when limit changes
   };
 
   // Handle edit loan
@@ -210,63 +211,31 @@ const LoanList = () => {
       visibleMonths.push(format(addMonths(currentDate, i), "MMMM yyyy"));
     }
 
-    // Use monthly summary data if available, otherwise fall back to loan data
-    if (monthlySummaryData?.summary && monthlySummaryData.summary.length > 0) {
-      const tableData = monthlySummaryData.summary.map((summary: any) => ({
-        id: summary.loanId,
-        loanDate: summary.loanDate,
-        partyName: summary.partyName,
-        party: {
-          partyName: summary.partyName,
-          mobile1: summary.mobile1,
-          address: summary.address,
-        },
-        monthlyData: summary.monthlyData || {}, // Contains detailed monthly info
-        totalLoanAmount: summary.totalLoanAmount,
-        totalBalanceInterest: 0, // Not needed for display
-        totalReceivedAmount: summary.totalReceivedAmount,
-        totalReceivedInterest: summary.totalReceivedInterest,
-        interest: summary.interest,
-      }));
-      
-      return { tableData, months: visibleMonths };
-    }
-
-    // Fallback to regular loan data if summary is not available
+    // Use paginated loan data from the main API
     if (!data?.loans || data.loans.length === 0) {
       return { tableData: [], months: visibleMonths };
     }
 
-    const tableData = data.loans.reduce((acc, loan) => {
-      const existingEntry = acc.find(
-        (entry) => entry.partyName === (loan.party?.partyName || loan.partyName)
-      );
+    // Convert each loan to a table row (no grouping for proper pagination)
+    const tableData = data.loans.map((loan) => {
       const month = format(parseISO(loan.loanDate), "MMMM yyyy");
-
-      if (existingEntry) {
-        existingEntry.monthlyAmounts[month] =
-          (existingEntry.monthlyAmounts[month] || 0) + loan.loanAmount;
-        existingEntry.totalLoanAmount += loan.loanAmount;
-        existingEntry.totalBalanceInterest += loan.balanceInterest;
-      } else {
-        acc.push({
-          id: loan.id,
-          loanDate: loan.loanDate,
-          partyName: loan.party?.partyName || loan.partyName,
-          party: loan.party,
-          monthlyAmounts: {
-            [month]: loan.loanAmount,
-          },
-          totalLoanAmount: loan.loanAmount,
-          totalBalanceInterest: loan.balanceInterest,
-          interest: loan.interest,
-        });
-      }
-      return acc;
-    }, [] as TableRowData[]);
+      
+      return {
+        id: loan.id,
+        loanDate: loan.loanDate,
+        partyName: loan.party?.partyName || loan.partyName,
+        party: loan.party,
+        monthlyAmounts: {
+          [month]: loan.loanAmount,
+        },
+        totalLoanAmount: loan.loanAmount,
+        totalBalanceInterest: loan.balanceInterest,
+        interest: loan.interest,
+      };
+    });
 
     return { tableData, months: visibleMonths };
-  }, [data, monthlySummaryData, currentDate]);
+  }, [data, currentDate]);
 
 
 
@@ -507,34 +476,16 @@ const LoanList = () => {
           </div>
 
           {/* Pagination */}
-          {data && data.totalPages > 1 && (
-            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mt-4">
-              <div className="flex items-center gap-2">
-                <span className="text-sm">Show</span>
-                <select
-                  className="border rounded p-1 text-sm"
-                  value={limit}
-                  onChange={(e) => handleRecordsPerPageChange(Number(e.target.value))}
-                >
-                  <option value="10">10</option>
-                  <option value="25">25</option>
-                  <option value="50">50</option>
-                  <option value="100">100</option>
-                </select>
-                <span className="text-sm">per page</span>
-              </div>
-              
-              <CustomPagination
-                currentPage={page}
-                totalPages={data.totalPages}
-                onPageChange={handlePageChange}
-              />
-              
-              <div className="text-sm">
-                Showing {(page - 1) * limit + 1} to {Math.min(page * limit, data.totalLoans)} of {data.totalLoans}
-              </div>
-            </div>
-          )}
+          <div className="flex justify-center mt-4">
+            <CustomPagination
+              currentPage={currentPage}
+              totalPages={data?.totalPages || 1}
+              totalRecords={data?.totalLoans || 0}
+              recordsPerPage={recordsPerPage}
+              onPageChange={handlePageChange}
+              onRecordsPerPageChange={handleRecordsPerPageChange}
+            />
+          </div>
         </CardContent>
       </Card>
 

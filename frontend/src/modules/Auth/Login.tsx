@@ -158,23 +158,18 @@ const Login = () => {
 
         {/* Email Field */}
         <div className="grid gap-2 relative pb-3">
-          {" "}
-          {/* Added pb-3 for error spacing */}
           <Label htmlFor="email">Email</Label>
           <Input
             id="email"
             type="email"
             placeholder="m@example.com"
-            {...register("email")} // RHF validation triggers on change/blur
+            {...register("email")}
             required
             disabled={isLoading}
-            aria-invalid={errors.email ? "true" : "false"} // Accessibility
+            aria-invalid={errors.email ? "true" : "false"}
           />
-          {/* Display RHF errors (client OR server-set) */}
           {errors.email && (
             <p className="text-destructive text-xs absolute -bottom-1 left-0">
-              {" "}
-              {/* Adjusted positioning */}
               {errors.email.message}
             </p>
           )}
@@ -182,29 +177,24 @@ const Login = () => {
 
         {/* Password Field */}
         <div className="grid gap-2 relative pb-3">
-          {" "}
-          {/* Added pb-3 for error spacing */}
           <Label htmlFor="password">Password</Label>
           <PasswordInput
             id="password"
             placeholder="Enter your password"
-            {...register("password")} // RHF validation triggers on change/blur
+            {...register("password")}
             required
             disabled={isLoading}
-            aria-invalid={errors.password ? "true" : "false"} // Accessibility
+            aria-invalid={errors.password ? "true" : "false"}
           />
-          {/* Display RHF errors (client OR server-set) */}
           {errors.password && (
             <p className="text-destructive text-xs absolute -bottom-1 left-0">
-              {" "}
-              {/* Adjusted positioning */}
               {errors.password.message}
             </p>
           )}
            <a
               href="/forgot-password"
-              tabIndex={isLoading ? -1 : 0} // Prevent tabbing when disabled
-              className="ml-auto text-sm underline-offset-2 hover:underline"
+              tabIndex={isLoading ? -1 : 0}
+              className="ml-auto text-sm underline-offset-2 hover:underline text-muted-foreground hover:text-foreground"
             >
               Forgot your password?
             </a>
@@ -224,7 +214,7 @@ const Login = () => {
 
         {/* Registration Link */}
         {allowRegistration && (
-          <div className="text-center text-sm">
+          <div className="text-center text-sm text-muted-foreground">
             Don't have an account?{" "}
             <a href="/register" className="underline underline-offset-4 text-primary hover:text-primary/80">
               Sign up

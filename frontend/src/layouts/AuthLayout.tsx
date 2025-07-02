@@ -1,9 +1,46 @@
 import { Outlet } from 'react-router-dom';
+import { useState, useEffect } from 'react';
 import { appName } from '@/config';
-
+ 
 const AuthLayout = () => {
+	const [isDarkMode, setIsDarkMode] = useState(() => {
+		// Check localStorage first
+		const savedTheme = localStorage.getItem("theme");
+		if (savedTheme) {
+			return savedTheme === "dark";
+		}
+		// If no saved preference, check system preference
+		return window.matchMedia("(prefers-color-scheme: dark)").matches;
+	});
+
+	// Effect to sync dark mode state with HTML class
+	useEffect(() => {
+		document.documentElement.classList.toggle("dark", isDarkMode);
+	}, [isDarkMode]);
+
+	// Effect to listen for system preference changes
+	useEffect(() => {
+		const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
+		const handleChange = (e: MediaQueryListEvent) => {
+			if (!localStorage.getItem("theme")) {
+				setIsDarkMode(e.matches);
+			}
+		};
+
+		mediaQuery.addEventListener("change", handleChange);
+		return () => mediaQuery.removeEventListener("change", handleChange);
+	}, []);
+
+	const toggleDarkMode = () => {
+		const newDarkMode = !isDarkMode;
+		setIsDarkMode(newDarkMode);
+		localStorage.setItem("theme", newDarkMode ? "dark" : "light");
+	};
+
 	return (
-		<div className='h-screen w-full'>
+		<div className='h-screen w-full bg-background'>
+			 
+			
 			<div className='grid lg:grid-cols-2 h-full'>
 				{/* Cover Image Section */}
 				<div className='relative hidden lg:block'>
@@ -25,7 +62,7 @@ const AuthLayout = () => {
 					</div>
 				</div>
 				{/* Form Section */}
-				<div className='flex flex-col justify-center items-center p-8 lg:p-12 bg-white'>
+				<div className='flex flex-col justify-center items-center p-8 lg:p-12 bg-background'>
 					<Outlet />
 				</div>
 			</div>
