@@ -402,8 +402,7 @@ const LoanList = () => {
               <TableHeader>
                 <TableRow className="bg-muted/50 hover:bg-muted/50">
                 <TableHead>Account Number</TableHead>
-                <TableHead>Loan Date</TableHead>
-                  <TableHead>Party</TableHead>
+                   <TableHead>Party</TableHead>
                   <TableHead>Loan(Interest)</TableHead>
                    {months.map((month: string) => (
                     <TableHead key={month}>{month}</TableHead>
@@ -435,9 +434,13 @@ const LoanList = () => {
                         setIsEntryDialogOpen(true);
                       }}
                     >
-                      <TableCell>{row.party?.accountNumber}</TableCell>
-                      <TableCell>{format(parseISO(row.loanDate), "dd/MM/yyyy")}</TableCell>
                       <TableCell>
+                        <div className="flex flex-col">
+                          <span>{format(parseISO(row.loanDate), "dd/MM/yyyy")}</span>
+                          <span className="text-sm text-muted-foreground">{row.party?.accountNumber}</span>
+                        </div>
+                      </TableCell>
+                       <TableCell>
                         <div className="flex flex-col">
                           <span className="font-medium">{row.partyName}</span>
                           <div className="flex flex-col">
@@ -477,13 +480,7 @@ const LoanList = () => {
                                       : "-"
                                     }
                                   </div>
-                                  {/* Loan Amount */}
-                                  <div className="text-green-600">
-                                    Loan: {monthData.loanAmount > 0 
-                                      ? formatCurrency(monthData.loanAmount) 
-                                      : "-"
-                                    }
-                                  </div>
+                                 
                                   {/* Interest Amount */}
                                   <div className="text-blue-600">
                                     Interest: {monthData.receivedInterest > 0 
@@ -496,9 +493,7 @@ const LoanList = () => {
                                 // Fallback display for old structure
                                 <>
                                   <div className="text-gray-600">-</div>
-                                  <div className="text-green-600">
-                                    {fallbackLoanAmount ? formatCurrency(fallbackLoanAmount) : "-"}
-                                  </div>
+                                  
                                   <div className="text-blue-600">
                                     {fallbackReceivedAmount ? `Paid: ${formatCurrency(fallbackReceivedAmount)}` : "-"}
                                   </div>
@@ -507,7 +502,6 @@ const LoanList = () => {
                                 // No data at all
                                 <>
                                   <div className="text-gray-600">-</div>
-                                  <div className="text-green-600">-</div>
                                   <div className="text-blue-600">-</div>
                                 </>
                               )}
