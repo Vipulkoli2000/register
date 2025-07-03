@@ -7,11 +7,12 @@ export function formatCurrency(amount) {
   const locale = import.meta.env.VITE_LOCALE || "en-IN";
   const currency = import.meta.env.VITE_CURRENCY || "INR";
 
+  const hasFraction = Math.abs(amount % 1) > 0;
   return new Intl.NumberFormat(locale, {
     style: "currency",
     currency: currency,
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
+    minimumFractionDigits: hasFraction ? 2 : 0,
+    maximumFractionDigits: hasFraction ? 2 : 0,
   }).format(amount);
 }
 
