@@ -47,6 +47,7 @@ model Loan {
   balanceAmount    Float
   interest         Float
   balanceInterest  Float
+  totalInterestAmount Float @default(0)
   entries          Entry[]
   deletedAt        DateTime? // Soft delete
   createdAt        DateTime  @default(now())

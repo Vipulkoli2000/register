@@ -346,6 +346,7 @@ const LoanList = () => {
                    {months.map((month: string) => (
                     <TableHead key={month}>{month}</TableHead>
                   ))}
+                  <TableHead className="text-right">Total Interest</TableHead>
                   <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
               </TableHeader>
@@ -452,6 +453,9 @@ const LoanList = () => {
                           </TableCell>
                         );
                       })}
+                      <TableCell className="text-right">
+                        {formatCurrency(row.totalReceivedInterest)}
+                      </TableCell>
                       <TableCell className="text-right">
                         <div className="flex justify-end gap-2" onClick={(e) => e.stopPropagation()}>
                           {/* <Button

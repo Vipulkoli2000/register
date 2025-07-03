@@ -191,6 +191,7 @@ const createEntry = asyncHandler(async (req, res) => {
       data: {
         balanceAmount: calculations.newBalanceAmount,
         balanceInterest: calculations.newBalanceInterest,
+        totalInterestAmount: { increment: receivedInterest },
       },
     });
 

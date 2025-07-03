@@ -80,6 +80,11 @@ const getLoans = asyncHandler(async (req, res) => {
       orderBy: { [sortBy]: sortOrder },
       include: {
         party: true,
+        entries: {
+          select: {
+            receivedInterest: true,
+          },
+        },
       },
     }),
     prisma.loan.count({ where: whereClause }),
@@ -88,7 +93,10 @@ const getLoans = asyncHandler(async (req, res) => {
   const totalPages = Math.ceil(totalLoans / limit);
   
   res.json({ 
-    loans, 
+    loans: loans.map(loan => {
+      const totalInterestAmount = loan.entries.reduce((sum, e) => sum + (e.receivedInterest || 0), 0);
+      return { ...loan, totalInterestAmount };
+    }),
     page, 
     totalPages, 
     totalLoans
@@ -108,7 +116,12 @@ const getLoan = asyncHandler(async (req, res) => {
   });
   if (!loan) throw createError(404, "Loan not found");
 
-  res.json(loan);
+  const receivedTotal = await prisma.entry.aggregate({
+    where: { loanId: id, receivedInterest: { not: null } },
+    _sum: { receivedInterest: true },
+  });
+  const totalInterestAmount = receivedTotal._sum.receivedInterest || 0;
+  res.json({ ...loan, totalInterestAmount });
 });
 
 // POST /api/loans
@@ -131,10 +144,11 @@ const createLoan = asyncHandler(async (req, res) => {
       // Set balance amount to loan amount if not provided or if they should be equal
       balanceAmount: validatedData.balanceAmount ?? validatedData.loanAmount,
       loanDate: new Date(validatedData.loanDate), // Ensure JS Date
+      totalInterestAmount: validatedData.balanceInterest
     },
   });
 
-  res.status(201).json(loan);
+  res.status(201).json({ ...loan, totalInterestAmount: loan.balanceInterest });
 });
 
 // PUT /api/loans/:id
@@ -167,14 +181,17 @@ const updateLoan = asyncHandler(async (req, res) => {
   if (req.body.loanAmount !== undefined) updateData.loanAmount = req.body.loanAmount;
   if (req.body.balanceAmount !== undefined) updateData.balanceAmount = req.body.balanceAmount;
   if (req.body.interest !== undefined) updateData.interest = req.body.interest;
-  if (req.body.balanceInterest !== undefined) updateData.balanceInterest = req.body.balanceInterest;
+  if (req.body.balanceInterest !== undefined) {
+    updateData.balanceInterest = req.body.balanceInterest;
+    updateData.totalInterestAmount = req.body.balanceInterest; // keep in sync
+  }
 
   const updated = await prisma.loan.update({
     where: { id },
     data: updateData,
   });
 
-  res.json(updated);
+  res.json({ ...updated, totalInterestAmount: updated.balanceInterest });
 });
 
 // DELETE /api/loans/:id (Soft delete)
