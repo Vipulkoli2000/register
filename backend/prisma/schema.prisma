@@ -17,6 +17,7 @@ model User {
   lastLogin         DateTime?
   resetToken        String?
   resetTokenExpires DateTime?
+  dayCloses         DayClose[]
   createdAt         DateTime  @default(now())
   updatedAt         DateTime  @updatedAt
   @@map("users")
@@ -75,4 +76,16 @@ model Entry {
   updatedAt        DateTime  @updatedAt
 
   @@index([deletedAt])
+}
+
+model DayClose {
+  id        Int      @id @default(autoincrement())
+  closedAt  DateTime @map("closed_at")
+  createdBy Int      @map("created_by")
+  user      User     @relation(fields: [createdBy], references: [id])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([closedAt])
+  @@map("day_closes")
 }

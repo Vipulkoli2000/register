@@ -46,6 +46,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import CustomPagination from "@/components/common/custom-pagination";
 import { get, del, post } from "@/services/apiService";
+import { format as formatDate } from "date-fns";
 // Import components from current directory
 import CreateLoan from "./CreateLoan";
 import EditLoan from "./EditLoan";
@@ -180,6 +181,34 @@ const LoanList = () => {
   });
 
 
+  // Fetch latest day close info
+  const {
+    data: lastCloseData,
+    isLoading: isLoadingLastClose,
+  } = useQuery({
+    queryKey: ["lastDayClose"],
+    queryFn: () => get("/api/day-closes/last"),
+  });
+
+  // Day Close mutation
+  const dayCloseMutation = useMutation({
+    mutationFn: () => post("/api/day-closes", {}),
+    onSuccess: (data: any) => {
+      const nextDayFormatted = data.nextDay ? formatDate(new Date(data.nextDay), "dd MMM yyyy") : "";
+      toast.success(`Day closed. Next day: ${nextDayFormatted}`);
+      queryClient.invalidateQueries({ queryKey: ["loans"] });
+      queryClient.invalidateQueries({ queryKey: ["lastDayClose"] });
+    },
+    onError: (error: any) => {
+      toast.error(error.response?.data?.message || error.message || "Failed to perform day close");
+    },
+  });
+
+  const handleDayClose = () => {
+    dayCloseMutation.mutate();
+  };
+
+
   // Handle search input
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearch(e.target.value);
@@ -287,10 +316,19 @@ const LoanList = () => {
       
       <Card className="border border-border">
         <CardHeader className="text-xl font-bold">
-          Loans
-          <CardDescription>
-          Manage loans
-        </CardDescription>
+          <div className="flex items-center justify-between">
+            <div>
+              Loans
+              <CardDescription>
+                Manage loans
+              </CardDescription>
+            </div>
+            {lastCloseData?.lastClose && (
+              <div className="text-sm text-muted-foreground">
+                Latest close: {formatDate(new Date(lastCloseData.lastClose.closedAt), "dd MMM yyyy, hh:mm a")} 
+              </div>
+            )}
+          </div>
         </CardHeader>
       
         <CardContent>
@@ -321,7 +359,31 @@ const LoanList = () => {
             </Button>
           </div>
 
-<div className="flex justify-end md:justify-self-end">
+<div className="flex justify-end md:justify-self-end gap-2">
+            {/* Day Close Button */}
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button size="sm" variant="outline" disabled={dayCloseMutation.isPending} label="Dayclose">
+                  {dayCloseMutation.isPending && <LoaderCircle className="mr-2 h-4 w-4 animate-spin" />}
+                  Dayclose
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    This will perform the day close operation for the current month. This action cannot be undone.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <AlertDialogAction onClick={handleDayClose}>
+                    Continue
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+
             {/* Action Buttons */}
             <Button
               onClick={() => setIsCreateDialogOpen(true)}
