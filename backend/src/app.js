@@ -54,8 +54,8 @@ app.use(express.urlencoded({ extended: true }));
 const frontendDistPath =
   process.env.NODE_ENV === "production"
     ? process.env.FRONTEND_PATH ||
-      path.resolve(__dirname, "..", "..", "CrediSphere-FrontEnd", "dist")
-    : path.resolve(__dirname, "..", "..", "CrediSphere-FrontEnd", "dist");
+      path.resolve(__dirname, "..", "..", "register", "frontend", "dist")
+    : path.resolve(__dirname, "..", "..", "register", "backend", "dist");
 
 console.log(`Frontend build path: ${frontendDistPath}`);
 
